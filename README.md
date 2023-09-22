@@ -28,7 +28,7 @@ on:
 jobs:
 
   call-publish-docker-image-by-tag:
-    uses: dshakalo/shared-workflows/.github/workflows/publish-docker-image-by-tag.yaml@main
+    uses: mdefenders/shared-workflows/.github/workflows/publish-docker-image-by-tag.yaml@main
     with:
       build-args: | 
         "MASTODON_VERSION=${{ vars.MASTODON_VERSION }}"
