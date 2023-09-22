@@ -19,6 +19,8 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: [self-hosted, docker-runner]
     steps:
+      - name: Print
+        run: env | sort
 
       - name: Cleanup the build folder
         run: |
