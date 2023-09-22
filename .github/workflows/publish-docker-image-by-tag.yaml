@@ -6,6 +6,11 @@ on:
       build-args:
         required: true
         type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 
 jobs:
   push_to_registry:
