@@ -5,10 +5,15 @@ To build a Dockerfile and publish docker image. Workflow is triggered by tag.
 
 Tag format [0-9].[0-9].[0-9] is recognized as Release tag and creates "latest" docker image tag too.
 
-It uses: 
-- Docker Hub target repo from the GitHub repo DOCKERHUB_REPO variable
+**It uses:** 
 - Docker build args from the inputs
 - DockerHub secrets from explicitly defined secrets (for external usage)
+
+**Naming convention**
+```bash
+github_organisation/github_repo = dockerhub_namespace/dockerhub_repo
+```
+
 
 Usage example:
 
