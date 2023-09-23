@@ -35,7 +35,7 @@ jobs:
             echo "Release tag found"
             echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV
           else
-            echo "Feature tag found"
+            echo "Feature tag/branch found"
             echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV          
           fi
 
