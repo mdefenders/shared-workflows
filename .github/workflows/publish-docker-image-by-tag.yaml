@@ -60,3 +60,11 @@ jobs:
           tags: ${{ env.TAGS }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ inputs.build-args }}
+
+  print_summary:
+    name: Print summary
+    runs-on: [self-hosted, docker-runner]
+    needs: push_to_registry
+    steps:
+      - name: Print summary
+        run: echo '### The images built:'$TAGS >> $GITHUB_STEP_SUMMARY
