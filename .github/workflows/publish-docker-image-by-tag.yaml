@@ -60,6 +60,8 @@ jobs:
           tags: ${{ env.TAGS }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ inputs.build-args }}
+    outputs:
+      pushedTags: ${{ env.TAGS }}
 
   print_summary:
     name: Print summary
@@ -67,4 +69,4 @@ jobs:
     needs: push_to_registry
     steps:
       - name: Print summary
-        run: echo '### The images built:'$TAGS >> $GITHUB_STEP_SUMMARY
+        run: echo '### The images built:'${{ needs.push_to_registry.outputs.pushedTags }} >> $GITHUB_STEP_SUMMARY
