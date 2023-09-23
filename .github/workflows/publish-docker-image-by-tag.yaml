@@ -63,4 +63,6 @@ jobs:
           build-args: ${{ inputs.build-args }}
 
       - name: Print summary
-        run: echo '### The images built:' ${{ steps.build_and_push.outputs.imageid }} ${{ steps.build_and_push.outputs.digest }} >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo '### The images built:' ${{ steps.build_and_push.outputs.digest }} 
+          >> $GITHUB_STEP_SUMMARY
