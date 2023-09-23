@@ -65,5 +65,7 @@ jobs:
           build-args: ${{ inputs.build-args }}
 
       - name: Print summary
-        run: echo '### The images built:https://hub.docker.com/layers/mdefenders/mastodon-herder/'${{ env.IMAGE_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }} >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo '### The image built:' >> $GITHUB_STEP_SUMMARY
+          echo 'https://hub.docker.com/layers/mdefenders/mastodon-herder/'${{ env.IMAGE_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }} >> $GITHUB_STEP_SUMMARY
 
