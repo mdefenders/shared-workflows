@@ -36,7 +36,7 @@ jobs:
             echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV
           else
             echo "Feature tag found"
-            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV          
+            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME.$GITHUB_RUN_ID" >> $GITHUB_ENV          
           fi
 
       - name: Log in to Docker Hub
