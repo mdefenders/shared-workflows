@@ -67,5 +67,5 @@ jobs:
       - name: Print summary
         run: |
           echo '### The image built:' >> $GITHUB_STEP_SUMMARY
-          echo '['${{ env.DOCKERHUB_REPO }}'/'${{ env.IMAGE_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.IMAGE_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
+          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.IMAGE_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.IMAGE_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
 
