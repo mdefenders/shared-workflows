@@ -64,5 +64,6 @@ jobs:
 
       - name: Print summary
         run: |
-          echo '### The images built:' ${{ steps.build_and_push.outputs.digest }} \
+          echo '### The images built:' \r\r \ 
+          ${{ steps.build_and_push.outputs.digest }} \
           >> $GITHUB_STEP_SUMMARY
