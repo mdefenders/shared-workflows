@@ -62,4 +62,4 @@ jobs:
           build-args: ${{ inputs.build-args }}
 
       - name: Print summary
-        run: echo '### The images built:'${{ env.TAGS }} >> $GITHUB_STEP_SUMMARY
+        run: echo '### The images built:'${{ steps.meta.outputs.tags }} >> $GITHUB_STEP_SUMMARY
