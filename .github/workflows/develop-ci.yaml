@@ -10,6 +10,7 @@ jobs:
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
   call-build-docker:
+    needs: call-code-quality
     if: startsWith(github.ref, 'refs/heads/develop')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
