@@ -26,19 +26,19 @@ jobs:
       - name: Lint code (ESLint)
         run: npx eslint .
 
+      # --- FORMAT CHECK ---
+      - name: Check formatting (ESLint)
+        run: npm run format:check
+
       # --- UNIT TESTS + COVERAGE ---
       - name: Run tests with coverage (Jest)
         run: npm run test -- --coverage
 
       - name: Check test coverage threshold
         run: |
-          COVERAGE=$(npx jest --coverage --coverageReporters=text-summary | grep 'All files' | awk '{print $3}' | tr -d '%')
+          COVERAGE=$(npx jest --coverage | grep 'All files' | awk '{print $4}' | tr -d '%')
           echo "Current coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 80" | bc -l) )); then
             echo "Coverage below threshold (80%)"
             exit 1
           fi
-
-      # --- FORMAT CHECK ---
-      - name: Check formatting (Prettier)
-        run: npm run format:check
