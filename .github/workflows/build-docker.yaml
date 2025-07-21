@@ -74,8 +74,8 @@ jobs:
       - name: Print summary
         if: ${{ !inputs.dry-run }}
         run: |
-          echo '### The image repo:' >> $GITHUB_STEP_SUMMARY
+          echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
-          echo '### The image content:' >> $GITHUB_STEP_SUMMARY
+          echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY          
           
