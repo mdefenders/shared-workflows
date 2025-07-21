@@ -1,15 +1,14 @@
-name: Feature Branch CI
+name: CI/CD Workflow
 
 on:
   workflow_call:
 
 jobs:
   call-code-quality:
-    if: startsWith(github.ref, 'refs/heads/feature/')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
-  call-build-docker:
+  call-build-docker-dry-run:
     if: startsWith(github.ref, 'refs/heads/feature/')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
