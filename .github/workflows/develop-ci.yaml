@@ -15,3 +15,12 @@ jobs:
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     secrets: inherit
+
+  call-scan-docker:
+    needs: call-build-docker
+    if: startsWith(github.ref, 'refs/heads/develop')
+    name: Call Scan Docker Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
+    with:
+      image-tag: ${{ needs.call-build-docker.outputs.image-tag }}
+    secrets: inherit
