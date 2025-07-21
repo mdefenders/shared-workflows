@@ -22,5 +22,5 @@ jobs:
     name: Call Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
-      image-tag: ${{ needs.call-build-docker.outputs.image-tag }}
+      image-tag: ${{ needs.call-build-docker.outputs.link-tag }}
     secrets: inherit
