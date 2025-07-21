@@ -85,5 +85,3 @@ jobs:
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
           echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build-and-push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
-          echo 'Output Tag: '${{ steps.get-tag.outputs.link-tag }}'' >> $GITHUB_STEP_SUMMARY
-          
