@@ -8,12 +8,15 @@ on:
       dry-run:
         type: boolean
         default: false
+    outputs:
+      link-tag:
+        value: ${{ jobs.build-and-push.outputs.link-tag }}
     secrets:
       DOCKER_PASSWORD:
         required: true
 
 jobs:
-  build_and_push:
+  build-and-push:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     outputs:
@@ -65,7 +68,7 @@ jobs:
           images: ${{ env.DOCKERHUB_REPO }}
 
       - name: Build and push (optional) Docker image
-        id: build_and_push
+        id: build-and-push
         uses: docker/build-push-action@v5.0.0
         with:
           context: .
@@ -81,6 +84,6 @@ jobs:
           echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
           echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
-          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
+          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build-and-push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
           echo 'Output Tag: '${{ steps.get-tag.outputs.link-tag }}'' >> $GITHUB_STEP_SUMMARY
           

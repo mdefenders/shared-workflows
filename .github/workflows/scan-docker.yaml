@@ -30,10 +30,10 @@ jobs:
           sudo dpkg -i trivy_0.64.1_Linux-64bit.deb
 
       - name: Pull image
-        run: docker pull '${{ inputs.link-tag }}'
+        run: docker pull  $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
 
       - name: Run Trivy
-        run: trivy image --exit-code 1 --severity CRITICAL,HIGH '${{ inputs.link-tag }}'
+        run: trivy image --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
 
 #      - name: Print summary
 #        run: |
