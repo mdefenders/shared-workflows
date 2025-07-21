@@ -32,7 +32,7 @@ jobs:
 
       # --- UNIT TESTS + COVERAGE ---
       - name: Run tests with coverage (Jest)
-        run: mkdir  coverage && npm run test -- --coverage > coverage/output.txt
+        run: mkdir  coverage && npm run test -- --coverage | tee coverage/output.txt
 
       - name: Check test coverage threshold
         run: |
