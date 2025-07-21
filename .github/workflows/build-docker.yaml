@@ -56,13 +56,13 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
 
-      - name: Build and push Docker image
+      - name: Build and push (optional) Docker image
         id: build_and_push
         uses: docker/build-push-action@v5.0.0
         with:
           context: .
           file: ./Dockerfile
-          push: ${ !inputs.dry-run }
+          push: ${{ !inputs.dry-run }}
           tags: ${{ env.TAGS }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ inputs.build-args }}
