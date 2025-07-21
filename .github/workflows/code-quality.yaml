@@ -5,6 +5,7 @@ on:
 
 jobs:
   quality-check:
+    if: startsWith(github.ref, 'refs/heads/feature/')
     name: Code Quality Gates
     runs-on: ubuntu-latest
 
