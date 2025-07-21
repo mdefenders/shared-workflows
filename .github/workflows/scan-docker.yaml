@@ -35,7 +35,7 @@ jobs:
         run: docker pull ${{ env.GITHUB_REPOSITORY }}:${{ inputs.image-tag }}
 
       - name: Run Trivy
-        run: trivy image --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:${{ inputs.image-tag }}
+        run: trivy image --exit-code 1 --severity CRITICAL,HIGH ${{ env.GITHUB_REPOSITORY }}:${{ inputs.image-tag }}
 
 
 #      - name: Print summary
