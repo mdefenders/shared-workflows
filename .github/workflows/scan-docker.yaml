@@ -38,6 +38,7 @@ jobs:
           trivy image --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}' | tee trivy-report.txt
 
       - name: Print summary
+        if: always()
         run: |
           echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
           echo '```ascii' >> $GITHUB_STEP_SUMMARY
