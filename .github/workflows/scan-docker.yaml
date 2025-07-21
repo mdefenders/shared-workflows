@@ -27,7 +27,7 @@ jobs:
       - name: Install Trivy
         run: |
           wget https://github.com/aquasecurity/trivy/releases/download/v0.64.1/trivy_0.64.1_Linux-64bit.deb
-          sudo dpkg -i trivy_0.51.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.64.1_Linux-64bit.deb
 
       - name: Pull image
         run: docker pull ${{ secrets.DOCKER_USERNAME }}/myapp:${{ inputs.image-tag }}
