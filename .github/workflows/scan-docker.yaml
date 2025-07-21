@@ -33,11 +33,12 @@ jobs:
         run: docker pull  $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
 
       - name: Run Trivy
-        run: trivy image --exit-code 1 --severity CRITICAL,HIGH --format table  $GITHUB_REPOSITORY:'${{ inputs.link-tag }}' | tee trivy-report.md
+        run: trivy image --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
 
-      - name: Upload Trivy summary to GitHub Actions UI
-        run: |
-          echo "## Trivy Scan Report" >> $GITHUB_STEP_SUMMARY
-          echo "```ascii" >> $GITHUB_STEP_SUMMARY
-          cat trivy-report.md >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
+#      - name: Print summary
+#        run: |
+#          echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
+#          echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
+#          echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
+#          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build_and_push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
+#
