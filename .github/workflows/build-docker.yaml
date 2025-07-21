@@ -50,6 +50,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
+        if: ${{ !inputs.dry-run }}
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
