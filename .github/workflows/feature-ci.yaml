@@ -1,0 +1,10 @@
+name: Feature Branch CI
+
+on:
+  workflow_call:
+
+jobs:
+  call-code-quality:
+    if: startsWith(github.ref, 'refs/heads/feature/')
+    name: Call Code Quality Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
