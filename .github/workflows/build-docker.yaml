@@ -38,17 +38,18 @@ jobs:
           if [[ $GITHUB_REF_NAME =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Release tag found"
             echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV
-            echo "LINK_TAG=$GITHUB_REF_NAME" >> $GITHUB_ENV
+            LINK_TAG=$GITHUB_REF_NAME
           elif [[ $GITHUB_REF_NAME == develop ]]; then
             echo "Develop tag found"
             echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            echo "LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV          
+            LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}        
           else
             echo "Feature tag/branch found"
             echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            echo "LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}
           fi
-          echo "link-tag=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "LINK_TAG=$LINK_TAG" >> $GITHUB_ENV
+          echo "link-tag=$LINK_TAG" >> $GITHUB_OUTPUT
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.0.0
