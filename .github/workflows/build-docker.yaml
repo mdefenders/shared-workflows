@@ -16,6 +16,8 @@ jobs:
   build_and_push:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.get-tag.outputs.tag }}
     steps:
       - name: Cleanup the build folder
         if: ${{ !inputs.dry-run }}
@@ -29,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Get Tag
-        if: ${{ !inputs.dry-run }}
+        id: get-tag
         run: |
           echo "DOCKERHUB_REPO=$GITHUB_REPOSITORY" >> $GITHUB_ENV
           
@@ -40,12 +42,13 @@ jobs:
           elif [[ $GITHUB_REF_NAME == develop ]]; then
             echo "Develop tag found"
             echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            echo "LINK_TAG=$GITHUB_REF_NAME-latest" >> $GITHUB_ENV          
+            echo "LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV          
           else
             echo "Feature tag/branch found"
-            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
-            echo "LINK_TAG=$GITHUB_REF_NAME.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+            echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            echo "LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
           fi
+          echo "tag=LINK_TAG" >> $GITHUB_OUTPUT
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.0.0
