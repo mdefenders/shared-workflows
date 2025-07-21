@@ -33,7 +33,7 @@ jobs:
       - name: Check test coverage threshold
         run: |
           COVERAGE=$(cat coverage/output.txt | grep 'All files' | awk '{print $4}' | tr -d '%')
-          echo "Minimum coverage threshold is '${{ env.MIN_COVERAGE || 80 }}'%"
+          echo "Minimum coverage threshold is ${{ vars.MIN_COVERAGE || 80 }}%"
           echo "Current coverage: $COVERAGE%"
           if (( $(echo "$COVERAGE < 80" | bc -l) )); then
             echo "Coverage below threshold (80%)"
