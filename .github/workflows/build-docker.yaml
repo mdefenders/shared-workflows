@@ -48,7 +48,7 @@ jobs:
             echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
             echo "LINK_TAG=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
           fi
-          echo "tag=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+          echo "tag=${{ env.LINK_TAG }}" >> $GITHUB_OUTPUT
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.0.0
