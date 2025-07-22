@@ -27,7 +27,7 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/download/v${{ vars.TRIVY_VERSION }}/trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
           sudo dpkg -i trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
           mkdir -p contrib
-          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/mdefenders/misc/refs/heads/main/aquasecurity/trivy/contrib/html.tpl
 
       - name: Pull image
         run: docker pull $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
@@ -36,12 +36,6 @@ jobs:
         run: |
           set -o pipefail
           trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
-          # Remove <style> ... </style>
-          sed -i '/<style/,/<\/style>/d' trivy-report.html
-          # Remove <title> ... </title>
-          sed -i 's|<title>.*</title>||g' trivy-report.html          
-          # Remove <script> ... </script>
-          sed -i '/<script/,/<\/script>/d' trivy-report.html
 
       - name: Print summary
         if: always()
