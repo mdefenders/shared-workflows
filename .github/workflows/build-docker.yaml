@@ -54,8 +54,8 @@ jobs:
           elif [[ $GITHUB_REF_NAME == release/* ]]; then
             echo "Release tag/branch found"
             RELEASE_NAME="${GITHUB_REF_NAME#release/}"
-            echo "TAGS=$GITHUB_REPOSITORY:RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:RELEASE_NAME-rc-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            LINK_TAG=RELEASE_NAME-rc-${GITHUB_SHA:0:7}
+            echo "TAGS=$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=$RELEASE_NAME-rc-${GITHUB_SHA:0:7}
           else
             echo "Unknown tag/branch found"
             echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
