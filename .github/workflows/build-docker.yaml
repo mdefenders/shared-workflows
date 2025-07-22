@@ -90,7 +90,7 @@ jobs:
           cat version.json
 
       - name: Commit version.json
-        if: ${{ inputs.push-image && && inputs.commit-version }}
+        if: ${{ inputs.push-image && inputs.commit-version }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"          
