@@ -72,6 +72,14 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
 
+      - name: Update version.json
+        if: ${{ inputs.push-image }}
+        run: |
+          echo "Updating version.json with link tag: $LINK_TAG"
+          jq --arg tag "$LINK_TAG" --arg commit "${GITHUB_SHA:0:7} '.version = $tag | .commit = $commit' version.json > tmp.$$.json && mv tmp.$$.json version.json
+          echo "Updated version.json:"
+          cat version.json
+
       - name: Build and push (optional) Docker image
         id: build-and-push
         uses: docker/build-push-action@v5.0.0
