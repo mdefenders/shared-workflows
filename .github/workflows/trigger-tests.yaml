@@ -69,13 +69,25 @@ jobs:
           echo "Running tests for $APP_NAME in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
             dev)
-              npm run test:integration
+              mkdir coverage
+              npm run test:integration -- --coverage | tee coverage/output.txt
+              echo "TITLE="Integration" >> $GITHUB_ENV
               ;;
             staging)
-              npm run test:staging
+              mkdir coverage
+              npm run test:staging -- --coverage | tee coverage/output.txt
+              echo "TITLE="End-to-End" >> $GITHUB_ENV
               ;;
             prod)
-              npm run test:prod
+              mkdir coverage
+              npm run test:prod -- --coverage | tee coverage/output.txt
+              echo "TITLE="Smoke" >> $GITHUB_ENV
               ;;
           esac          
           echo "Tests executed successfully."
+      - name: Print summary
+        run: |
+          echo "### ${TITLE} test report:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY          
+          cat coverage/output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
