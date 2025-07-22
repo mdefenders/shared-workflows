@@ -86,6 +86,7 @@ jobs:
           echo "Updated version.json:"
           cat version.json
           git add version.json
+          git pull
           git commit -m "github-actions[bot] version.json updated with image version $LINK_TAG"
           git push
 
