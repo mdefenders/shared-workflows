@@ -49,3 +49,21 @@ jobs:
               fi
             fi
           done
+
+      - name: Run tests
+        run: |
+          set -o pipefail
+          SERVICE_URL=${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:=${{ vars.SERVICE_PORT || '3000' }}
+          echo "Running tests for $APP_NAME in environment: ${{ inputs.environment }}"
+          case ${{ inputs.environment }} in
+            dev)
+              npm run test:integration
+              ;;
+            staging)
+              npm run test:staging
+              ;;
+            prod)
+              npm run test:prod
+              ;;
+          esac          
+          echo "Tests executed successfully."
