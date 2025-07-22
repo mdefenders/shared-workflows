@@ -35,7 +35,13 @@ jobs:
       - name: Run Trivy
         run: |
           set -o pipefail
-          trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'          
+          trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
+          # Remove <style> ... </style>
+          sed -i '/<style/,/<\/style>/d' trivy-report.html
+          # Remove <title> ... </title>
+          sed -i 's|<title>.*</title>||g' trivy-report.html          
+          # Remove <script> ... </script>
+          sed -i '/<script/,/<\/script>/d' trivy-report.html
 
       - name: Print summary
         if: always()
