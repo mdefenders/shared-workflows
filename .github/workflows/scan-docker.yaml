@@ -33,13 +33,12 @@ jobs:
       - name: Run Trivy
         run: |
           set -o pipefail
-          trivy image --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}' | tee trivy-report.txt
+          trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'          
 
       - name: Print summary
         if: always()
         run: |
           echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
           echo '<details><summary>Click to expand Inage Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
-          echo '```ascii' >> $GITHUB_STEP_SUMMARY
-          cat trivy-report.txt >> $GITHUB_STEP_SUMMARY
-          echo '```</details>' >> $GITHUB_STEP_SUMMARY
+          cat trivy-report.html >> $GITHUB_STEP_SUMMARY
+          echo '</details>' >> $GITHUB_STEP_SUMMARY
