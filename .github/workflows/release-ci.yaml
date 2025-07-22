@@ -1,26 +1,39 @@
-name: Develop Branch CI
+name: Release Branch CI
 
 on:
   workflow_call:
 
 jobs:
+  check-release-branch:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    name: Check Release Branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate SemVer Format
+        run: |
+          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "Validating branch: $BRANCH_NAME"
+          if [[ ! "$BRANCH_NAME" =~ ^release\/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Branch name must follow release/x.y.z (SemVer) format"
+            exit 1
+          fi
   call-code-quality:
-    if: startsWith(github.ref, 'refs/heads/develop')
+    if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
   call-build-docker:
     needs: call-code-quality
-    if: startsWith(github.ref, 'refs/heads/develop')
+    if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     with:
-      push-image: ${{ fromJSON(vars.PUSH_DEV_IMAGE || 'true') }}
+      push-image: ${{ fromJSON(vars.PUSH_STAGING_IMAGE || 'true') }}
     secrets: inherit
 
   call-scan-docker:
     needs: call-build-docker
-    if: startsWith(github.ref, 'refs/heads/develop')
+    if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
@@ -29,19 +42,19 @@ jobs:
 
   call-cd-deploy:
     needs: call-build-docker
-    if: startsWith(github.ref, 'refs/heads/develop')
+    if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
-      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
-      environment: 'dev'
+      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/staging/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
+      environment: 'staging'
 
   call-trigger-tests:
     needs: call-build-docker
-    if: startsWith(github.ref, 'refs/heads/develop')
+    if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
-      environment: 'dev'
+      environment: 'staging'
