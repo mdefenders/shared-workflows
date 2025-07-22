@@ -31,7 +31,7 @@ jobs:
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"
           git add "${{ inputs.gitops-file }}"
-          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}
+          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}"
           git push
 
       - name: Print summary
