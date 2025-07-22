@@ -22,13 +22,16 @@ jobs:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
       - name: Install Trivy
         run: |
           wget https://github.com/aquasecurity/trivy/releases/download/v${{ vars.TRIVY_VERSION }}/trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
           sudo dpkg -i trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
 
       - name: Pull image
-        run: docker pull  $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
+        run: docker pull $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
 
       - name: Run Trivy
         run: |
