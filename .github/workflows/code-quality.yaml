@@ -28,7 +28,10 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Run tests with coverage (Jest)
-        run: mkdir coverage && npm run test:unit -- --coverage | tee coverage/output.txt
+        run: |
+          set -o pipefail
+          mkdir coverage
+          npm run test:unit -- --coverage | tee coverage/output.txt
 
       - name: Check test coverage threshold
         run: |
