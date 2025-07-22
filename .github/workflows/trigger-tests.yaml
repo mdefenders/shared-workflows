@@ -1,0 +1,21 @@
+name: Trigger Tests
+
+on:
+  workflow_call:
+    inputs:
+      link-tag:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+
+jobs:
+  trigger-tests:
+    name: Trigger Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: azure/setup-kubectl@v4
+        with:
+          version: ${{ vars.KUBECTL_VERSION || 'latest' }}
