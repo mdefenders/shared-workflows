@@ -76,12 +76,12 @@ jobs:
               ;;
             staging)
               mkdir coverage
-              npm run test:staging -- --coverage | tee coverage/output.txt
+              npm run test:endtoend -- --coverage | tee coverage/output.txt
               echo "TITLE=End-to-End" >> $GITHUB_ENV
               ;;
             prod)
               mkdir coverage
-              npm run test:prod -- --coverage | tee coverage/output.txt
+              npm run test:smoke -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
               ;;
           esac    
