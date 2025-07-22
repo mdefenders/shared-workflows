@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
-          echo "tag: ${{ inputs.link-tag }}" > "${{ inputs.gitops-file }}"          
+          echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"          
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
           git add "${{ inputs.gitops-file }}"
           git fetch origin ${{ github.ref_name }}
