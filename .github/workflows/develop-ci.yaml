@@ -14,6 +14,8 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/develop')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
+    with:
+      push_image: ${{ vars.PUSH_FB_IMAGE || true }}
     secrets: inherit
 
   call-scan-docker:
