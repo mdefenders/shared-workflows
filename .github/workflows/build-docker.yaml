@@ -46,10 +46,15 @@ jobs:
             echo "Develop tag found"
             echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
             LINK_TAG=$GITHUB_REF_NAME-${GITHUB_SHA:0:7}
-          else
+          elif [[ $GITHUB_REF_NAME == feature/* ]]; then
             echo "Feature tag/branch found"
-            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            LINK_TAG=$GITHUB_REF_NAME-${GITHUB_SHA:0:7}
+            FEATURE_NAME="${GITHUB_REF_NAME#feature/}"
+            echo "TAGS=$GITHUB_REPOSITORY:$FEATURE_NAME-latest,$GITHUB_REPOSITORY:$FEATURE_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=$FEATURE_NAME-${GITHUB_SHA:0:7}          
+          else
+            echo "Unknown tag/branch found"
+            echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=${GITHUB_SHA:0:7}
           fi
           echo "LINK_TAG=$LINK_TAG" >> $GITHUB_ENV
           echo "link-tag=$LINK_TAG" >> $GITHUB_OUTPUT
