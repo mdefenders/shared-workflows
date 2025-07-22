@@ -14,5 +14,5 @@ jobs:
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     with:
-      push_image: ${{ vars.PUSH_FB_IMAGE || false }}
+      push-image: "${{ vars.PUSH_FB_IMAGE || false }}"
     secrets: inherit

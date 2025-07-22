@@ -5,7 +5,7 @@ on:
     inputs:
       build-args:
         type: string
-      push_image:
+      push-image:
         type: boolean
         default: false
     outputs:
@@ -23,7 +23,7 @@ jobs:
       link-tag: ${{ steps.get-tag.outputs.link-tag }}
     steps:
       - name: Cleanup the build folder
-        if: ${{ inputs.push_image }}
+        if: ${{ inputs.push-image }}
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -66,7 +66,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
-        if: ${{ inputs.push_image }}
+        if: ${{ inputs.push-image }}
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
@@ -78,13 +78,13 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: ${{ inputs.push_image }}
+          push: ${{ inputs.push-image }}
           tags: ${{ env.TAGS }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ inputs.build-args }}
 
       - name: Print summary
-        if: ${{ inputs.push_image }}
+        if: ${{ inputs.push-image }}
         run: |
           echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
