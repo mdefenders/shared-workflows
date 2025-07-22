@@ -1,4 +1,4 @@
-name: Trigger Tests
+name: Trigger Post-Deploy Tests
 
 on:
   workflow_call:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   trigger-tests:
-    name: Trigger Tests
+    name: Trigger Post-Deploy Tests
     runs-on: ubuntu-latest
     steps:
       - name: Install kubectl
