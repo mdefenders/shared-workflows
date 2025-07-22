@@ -26,7 +26,7 @@ jobs:
           DEPLOY_PULL_INTERVAL=${{ vars.DEPLOY_PULL_INTERVAL || 20 }}
           DEPLOY_PULL_COUNT=${{ vars.DEPLOY_PULL_COUNT || 10 }}
           DEPLOY_FORCE_RUN_TESTS=${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
-          K8S_NAMESPACE=${{ vasrs.K8S_NAMESPACE || 'default' }}
+          K8S_NAMESPACE=${{ vars.K8S_NAMESPACE || 'default' }}
           APP_NAME=${GITHUB_REPOSITORY##*/}
           echo "Waiting for $APP_NAME deployment to be available in environment: ${{ inputs.environment }} with $EXPECTED_REPLICAS replicas and tag ${{ inputs.link-tag }}"
           while true; do
