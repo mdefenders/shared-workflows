@@ -65,7 +65,8 @@ jobs:
       - name: Run tests
         run: |
           set -o pipefail
-          SERVICE_URL=${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:=${{ vars.SERVICE_PORT || '3000' }}
+          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:=${{ vars.SERVICE_PORT || '3000' }}
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
           echo "Running tests for $APP_NAME in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
             dev)
@@ -87,7 +88,7 @@ jobs:
           echo "Tests executed successfully."
       - name: Print summary
         run: |
-          echo "### ${TITLE} test report:" >> $GITHUB_STEP_SUMMARY
+          echo "### Service ${SERVICE_URL} ${TITLE} test report:" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY          
           cat coverage/output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
