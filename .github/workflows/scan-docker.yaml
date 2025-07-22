@@ -41,6 +41,6 @@ jobs:
         if: always()
         run: |
           echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
-          echo '<details><summary>Click to expand Inage Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
+          echo '<details><summary>Click to expand Image Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
           cat trivy-report.html >> $GITHUB_STEP_SUMMARY
           echo '</details>' >> $GITHUB_STEP_SUMMARY
