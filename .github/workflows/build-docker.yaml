@@ -5,7 +5,7 @@ on:
     inputs:
       build-args:
         type: string
-      dry-run:
+      push_image:
         type: boolean
         default: false
     outputs:
@@ -23,7 +23,7 @@ jobs:
       link-tag: ${{ steps.get-tag.outputs.link-tag }}
     steps:
       - name: Cleanup the build folder
-        if: ${{ !inputs.dry-run }}
+        if: ${{ inputs.push_image }}
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -44,12 +44,12 @@ jobs:
             LINK_TAG=latest
           elif [[ $GITHUB_REF_NAME == develop ]]; then
             echo "Develop tag found"
-            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            LINK_TAG=${GITHUB_SHA:0:7}        
+            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=$GITHUB_REF_NAME-${GITHUB_SHA:0:7}
           else
             echo "Feature tag/branch found"
-            echo "TAGS=$GITHUB_REPOSITORY:${GITHUB_SHA:0:7}" >> $GITHUB_ENV
-            LINK_TAG=${GITHUB_SHA:0:7}
+            echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
+            LINK_TAG=$GITHUB_REF_NAME-${GITHUB_SHA:0:7}
           fi
           echo "LINK_TAG=$LINK_TAG" >> $GITHUB_ENV
           echo "link-tag=$LINK_TAG" >> $GITHUB_OUTPUT
@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
-        if: ${{ !inputs.dry-run }}
+        if: ${{ inputs.push_image }}
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
@@ -73,13 +73,13 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: ${{ !inputs.dry-run }}
+          push: ${{ inputs.push_image }}
           tags: ${{ env.TAGS }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: ${{ inputs.build-args }}
 
       - name: Print summary
-        if: ${{ !inputs.dry-run }}
+        if: ${{ inputs.push_image }}
         run: |
           echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
