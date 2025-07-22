@@ -18,6 +18,7 @@ jobs:
             exit 1
           fi
   call-code-quality:
+    needs: check-release-branch
     if: startsWith(github.ref, 'refs/heads/release/')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
