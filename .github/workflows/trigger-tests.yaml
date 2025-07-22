@@ -15,7 +15,37 @@ jobs:
     name: Trigger Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
+      - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
           version: ${{ vars.KUBECTL_VERSION || 'latest' }}
+
+      - name: Wait for deployment
+        run: |
+          EXPECTED_REPLICAS=${{ vars.K8S_REPLICAS || 3 }}
+          DEPLOY_PULL_INTERVAL=${{ vars.DEPLOY_PULL_INTERVAL || 20 }}
+          DEPLOY_PULL_COUNT=${{ vars.DEPLOY_PULL_COUNT || 10 }}
+          DEPLOY_FORCE_RUN_TESTS=${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
+          K8S_NAMESPACE=${{ vasrs.K8S_NAMESPACE || 'default' }}
+          APP_NAME=${GITHUB_REPOSITORY##*/}
+          echo "Waiting for $APP_NAME deployment to be available in environment: ${{ inputs.environment }} with $EXPECTED_REPLICAS replicas and tag ${{ inputs.link-tag }}"
+          while true; do
+            AVAILABLE_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} -l tag=${{ inputs.link-tag }} | wc -l)
+            ORPHANED_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} | grep -v "${{ inputs.link-tag }}" | wc -l)
+            if [[ "$AVAILABLE_REPLICAS" == "$EXPECTED_REPLICAS" && "$ORPHANED_REPLICAS" == "0" ]]; then
+              echo "Deployment is available with $AVAILABLE_REPLICAS replicas."
+              break
+            else
+              echo "Waiting for deployment to be available... Current replicas: $AVAILABLE_REPLICAS"
+              sleep $DEPLOY_PULL_INTERVAL
+              ((DEPLOY_PULL_COUNT--))
+              if [[ $DEPLOY_PULL_COUNT -le 0 ]]; then
+                if [[ "${{ vars.DEPLOY_FORCE_RUN_TESTS }}" == "true" ]]; then
+                  echo "Forcing tests to run despite deployment not being available."
+                  break
+                fi
+                echo "Deployment did not become available in time. Exiting."
+                exit 1
+              fi
+            fi
+          done
