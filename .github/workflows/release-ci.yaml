@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Validate SemVer Format
         run: |
-          echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
           echo "Validating branch: $BRANCH_NAME"
           if [[ ! "$BRANCH_NAME" =~ ^release\/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Branch name must follow release/x.y.z (SemVer) format"
