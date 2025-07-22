@@ -26,6 +26,8 @@ jobs:
         run: |
           wget https://github.com/aquasecurity/trivy/releases/download/v${{ vars.TRIVY_VERSION }}/trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
           sudo dpkg -i trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
+          mkdir -p contrib
+          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
 
       - name: Pull image
         run: docker pull $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
