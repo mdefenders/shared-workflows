@@ -57,3 +57,9 @@ jobs:
           else
             echo "Coverage meets threshold"
           fi
+      - name: Print summary
+        run: |
+          echo '### Unit test report:' >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY          
+          cat coverage/output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
