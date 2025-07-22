@@ -32,8 +32,9 @@ jobs:
           echo "image: $GITHUB_REPOSITORY:${{ inputs.link-tag }}" > "${{ inputs.gitops-file }}"
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
           git add "${{ inputs.gitops-file }}"
-          git pull
-          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}"
+          git fetch origin ${{ github.ref_name }}
+          git merge origin/${{ github.ref_name }}
+          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
           git push
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
