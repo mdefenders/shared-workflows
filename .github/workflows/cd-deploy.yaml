@@ -34,9 +34,11 @@ jobs:
           git add "${{ inputs.gitops-file }}"
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}"
           git push
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Print summary
         if: always()
         run: |
           echo '### CD Action:' >> $GITHUB_STEP_SUMMARY
             echo "Pushed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" GitOps>> $GITHUB_STEP_SUMMARY
+            echo "[View Commit](https://github.com/$GITHUB_REPOSITORY/commit/$COMMIT_SHA)" >> $GITHUB_STEP_SUMMARY
