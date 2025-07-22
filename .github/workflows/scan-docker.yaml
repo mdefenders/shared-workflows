@@ -11,7 +11,7 @@ on:
         required: true
 
 jobs:
-  pull_and_scan:
+  pull-and-scan:
     name: Pull and scan Docker image
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +42,3 @@ jobs:
           echo '```ascii' >> $GITHUB_STEP_SUMMARY
           cat trivy-report.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-
-
-#
