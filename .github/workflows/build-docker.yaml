@@ -72,6 +72,11 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
 
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Update version.json
         if: ${{ inputs.push-image }}
         run: |
@@ -79,6 +84,10 @@ jobs:
           jq --arg tag "$LINK_TAG" --arg commit "${GITHUB_SHA:0:7} '.version = $tag | .commit = $commit' version.json > tmp.$$.json && mv tmp.$$.json version.json
           echo "Updated version.json:"
           cat version.json
+          git add version.json
+          git commit -m "github-actions[bot] version.json updated with image version $LINK_TAG"
+          git push
+
 
       - name: Build and push (optional) Docker image
         id: build-and-push
