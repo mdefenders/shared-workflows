@@ -8,6 +8,9 @@ on:
       push-image:
         type: boolean
         default: false
+      commit-version:
+        type: boolean
+        default: false
     outputs:
       link-tag:
         value: ${{ jobs.build-and-push.outputs.link-tag }}
@@ -77,11 +80,6 @@ jobs:
         with:
           images: ${{ env.DOCKERHUB_REPO }}
 
-      - name: Set up Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Update version.json
         if: ${{ inputs.push-image }}
         run: |
@@ -90,12 +88,17 @@ jobs:
           jq --arg tag "$LINK_TAG" --arg commit "${GITHUB_SHA:0:7}" '.version = $tag | .commit = $commit' version.json > tmp.$$.json && mv tmp.$$.json version.json
           echo "Updated version.json:"
           cat version.json
+
+      - name: Commit version.json
+        if: ${{ inputs.push-image && && inputs.commit-version }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"          
           git add version.json
           git fetch origin ${{ github.ref_name }}
           git merge origin/${{ github.ref_name }}
           git commit -m "github-actions[bot] version.json updated with image version $LINK_TAG" || echo "No changes to commit"
           git push
-
 
       - name: Build and push (optional) Docker image
         id: build-and-push
