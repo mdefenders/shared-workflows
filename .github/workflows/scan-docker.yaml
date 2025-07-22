@@ -39,6 +39,17 @@ jobs:
         if: always()
         run: |
           echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
+          echo '<details><summary>Click to expand Inage Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
           echo '```ascii' >> $GITHUB_STEP_SUMMARY
           cat trivy-report.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo '```</details>' >> $GITHUB_STEP_SUMMARY
+          
+
+<details>
+  <summary>Click to expand GitOps update logs</summary>
+
+  - Pushed image `my-org/my-app:abc123` to `staging`
+  - [View Commit](https://github.com/my-org/my-app/commit/abc123)
+  - GitOps file updated: `k8s/deployment.yaml`
+
+</details>
