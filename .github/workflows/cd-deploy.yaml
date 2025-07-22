@@ -29,7 +29,8 @@ jobs:
       - name: Update GitOps file
         run: |
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
-          echo "tag: ${{ inputs.link-tag }}" > "${{ inputs.gitops-file }}"
+          echo "image: $GITHUB_REPOSITORY:${{ inputs.link-tag }}" > "${{ inputs.gitops-file }}"
+          echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
           git add "${{ inputs.gitops-file }}"
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}"
           git push
