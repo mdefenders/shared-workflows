@@ -46,7 +46,6 @@ jobs:
           # Normalize the branch name for both push and pull_request
           BRANCH_NAME="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
           echo "Resolved branch: $BRANCH_NAME"
-          echo "RELEASE_NAME=SNAPSHOT" >> $GITHUB_ENV
 
           case "$BRANCH_NAME" in
             main)
