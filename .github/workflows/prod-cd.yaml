@@ -46,9 +46,9 @@ jobs:
           tag: ${{ env.LINK_TAG }}
 
       - name: Exit if image exists
-        if: steps.check-image.outputs.tag == 'found'
+        if: steps.check-image.outputs.tag == 'not found'
         run: |
-          echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found exists. Exiting."
+          echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found . Exiting."
           exit 1
 
   call-cd-deploy:
