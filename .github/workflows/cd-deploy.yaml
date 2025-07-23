@@ -47,6 +47,10 @@ jobs:
 
       - name: Update GitOps file and release tag
         run: |
+          if [[ -z "${{ inputs.link-tag }}" ]]; then
+            echo "No Tag provided. Exiting."
+            exit 1
+          fi
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
           echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"          
