@@ -5,13 +5,13 @@ on:
 
 jobs:
   call-code-quality:
-    if: startsWith(github.head_ref || github.ref, 'main')
+    if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
   call-build-docker:
     needs: call-code-quality
-    if: startsWith(github.head_ref || github.ref, 'main')
+    if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     with:
@@ -20,7 +20,7 @@ jobs:
 
   call-scan-docker:
     needs: call-build-docker
-    if: startsWith(github.head_ref || github.ref, 'main')
+    if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
@@ -29,7 +29,7 @@ jobs:
 
   call-cd-deploy:
     needs: call-build-docker
-    if: startsWith(github.head_ref || github.ref, 'main')
+    if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
@@ -39,7 +39,7 @@ jobs:
 
   call-trigger-tests:
     needs: call-build-docker
-    if: startsWith(github.head_ref || github.ref, 'main')
+    if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:

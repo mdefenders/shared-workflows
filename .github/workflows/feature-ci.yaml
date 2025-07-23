@@ -5,12 +5,12 @@ on:
 
 jobs:
   call-code-quality:
-    if: startsWith(github.head_ref || github.ref, 'feature/')
+    if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
   call-build-docker:
-    if: startsWith(github.head_ref || github.ref, 'feature/')
+    if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     with:
