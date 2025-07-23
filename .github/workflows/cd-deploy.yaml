@@ -38,10 +38,10 @@ jobs:
         run: |
           TAG=$(cat "${{ inputs.gitops-file }}" | grep ^tag: | cut -f2 -d' ')
           if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Current=$TAG"
+            echo "Current tag: $TAG"
           else
             echo "Current tag is not in SemVer format: $TAG"
-          TAG=""
+            TAG=""
           fi
           echo "current-tag=$TAG" >> $GITHUB_OUTPUT
 
