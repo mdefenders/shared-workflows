@@ -43,8 +43,13 @@ jobs:
           
           if [[ $GITHUB_REF_NAME == master ]]; then
             echo "Master tag/branch found"
-            echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV
-            LINK_TAG=latest
+            RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
+            if [[ -z $RELEASE_NAME ]]; then
+              "No valid release name found in version.json,exiting"
+              exit 1
+            fi
+            echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$RELEASE_NAME" >> $GITHUB_ENV
+            LINK_TAG=$RELEASE_NAME
           elif [[ $GITHUB_REF_NAME == develop ]]; then
             echo "Develop tag found"
             echo "TAGS=$GITHUB_REPOSITORY:$GITHUB_REF_NAME-latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME-${GITHUB_SHA:0:7}" >> $GITHUB_ENV

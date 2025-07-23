@@ -72,13 +72,18 @@ jobs:
             dev)
               mkdir coverage
               npm run test:integration -- --coverage | tee coverage/output.txt
-              echo "TITLE=Integration" >> $GITHUB_ENV
+              echo "TITLE=Regression/Integration" >> $GITHUB_ENV
               ;;
             staging)
               mkdir coverage
-              npm run test:endtoend -- --coverage | tee coverage/output.txt
-              echo "TITLE=End-to-End" >> $GITHUB_ENV
+              npm run test:integration -- --coverage | tee coverage/output.txt
+              echo "TITLE=Integration" >> $GITHUB_ENV
               ;;
+            preprod)
+              mkdir coverage
+              npm run test:endtoend -- --coverage | tee coverage/output.txt
+              echo "TITLE=Smoke" >> $GITHUB_ENV
+              ;;          
             prod)
               mkdir coverage
               npm run test:smoke -- --coverage | tee coverage/output.txt
