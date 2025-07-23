@@ -108,7 +108,7 @@ jobs:
       - name: Update version.json
         if: ${{ inputs.push-image }}
         run: |
-          set -pipefail
+          set -o pipefail
           echo "Updating version.json with link tag: $LINK_TAG"
           [ -s version.json ] || echo '{}' > version.json
       
