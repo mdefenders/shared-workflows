@@ -32,7 +32,7 @@ jobs:
           while true; do
             AVAILABLE_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} -l tag=${{ inputs.link-tag }} | wc -l)
             ORPHANED_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} | grep -v "${{ inputs.link-tag }}" | wc -l)
-            if [[ "$AVAILABLE_REPLICAS" == "$EXPECTED_REPLICAS" && "$ORPHANED_REPLICAS" == "0" ]]; then
+            if [[ "$AVAILABLE_REPLICAS" >= "$EXPECTED_REPLICAS" && "$ORPHANED_REPLICAS" == "0" ]]; then
               echo "Deployment is available with $AVAILABLE_REPLICAS replicas."
               break
             else

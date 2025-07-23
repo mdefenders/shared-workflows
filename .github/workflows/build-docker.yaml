@@ -41,8 +41,8 @@ jobs:
         run: |
           echo "DOCKERHUB_REPO=$GITHUB_REPOSITORY" >> $GITHUB_ENV
           
-          if [[ $GITHUB_REF_NAME =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tag found"
+          if [[ $GITHUB_REF_NAME == master ]]; then
+            echo "Master tag/branch found"
             echo "TAGS=$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$GITHUB_REF_NAME" >> $GITHUB_ENV
             LINK_TAG=latest
           elif [[ $GITHUB_REF_NAME == develop ]]; then
@@ -57,6 +57,7 @@ jobs:
           elif [[ $GITHUB_REF_NAME == release/* ]]; then
             echo "Release tag/branch found"
             RELEASE_NAME="${GITHUB_REF_NAME#release/}"
+            echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
             echo "TAGS=$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-${GITHUB_SHA:0:7}" >> $GITHUB_ENV
             LINK_TAG=$RELEASE_NAME-rc-${GITHUB_SHA:0:7}
           else
@@ -85,12 +86,15 @@ jobs:
         run: |
           echo "Updating version.json with link tag: $LINK_TAG"
           [ -s version.json ] || echo '{}' > version.json
-          jq --arg tag "$LINK_TAG" --arg commit "${GITHUB_SHA:0:7}" '.version = $tag | .commit = $commit' version.json > tmp.$$.json && mv tmp.$$.json version.json
+      
+          jq --arg release ${{ env.RELEASE_NAME }} --arg tag "$LINK_TAG" --arg commit "${GITHUB_SHA:0:7}" \
+            '.version = $tag | .commit = $commit | (.release = $release // .release)' version.json > tmp.json && mv tmp.json version.json
+      
           echo "Updated version.json:"
           cat version.json
 
       - name: Commit version.json
-        if: ${{ inputs.push-image && inputs.commit-version }}
+        if: ${{ inputs.push-image && inputs.commit-version || env.RELEASE_NAME }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"          
