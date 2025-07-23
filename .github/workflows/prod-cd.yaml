@@ -72,6 +72,10 @@ jobs:
           echo "Input Link Tag: ${{ needs.call-get-tag.outputs.link-tag }}"
           echo "Input GitOps File Path: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}"
           echo "Input Current Tag: ${{ needs.call-cd-deploy.outputs.current-tag }}"
+    with:
+      link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
+      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
+      current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
 
 
 
