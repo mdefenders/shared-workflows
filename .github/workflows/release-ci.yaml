@@ -5,6 +5,7 @@ on:
 
 jobs:
   check-release-branch:
+    if: startsWith(github.head_ref || github.ref_name, 'release/')
     name: Check Release Branch
     runs-on: ubuntu-latest
     steps:
