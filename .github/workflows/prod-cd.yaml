@@ -34,7 +34,22 @@ jobs:
           fi
           echo "Latest SemVer tag: $LATEST_TAG"
           echo "link-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "LINK_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
+          
 
+      - name: Check if Docker image exists on DockerHub
+        id: check-image
+        uses: tyriis/docker-image-tag-exists@v2.1.0
+        with:
+          registry: docker.io
+          repository: ${{ github.repository }}
+          tag: ${{ env.LINK_TAG }}
+
+      - name: Exit if image exists
+        if: steps.check-image.outputs.tag == 'found'
+        run: |
+          echo "Docker image ${{ github.repository }}:${{ github.sha }} not found exists. Exiting."
+          exit 1
 
   call-cd-deploy:
     needs: call-get-tag
