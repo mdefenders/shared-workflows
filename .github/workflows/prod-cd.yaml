@@ -68,6 +68,7 @@ jobs:
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
       link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
+      current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
       environment: 'prod'
 
   rollback-cd-deploy:
