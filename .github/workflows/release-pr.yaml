@@ -1,4 +1,4 @@
-name: Release Branch CI
+name: Release Branch PR CI
 
 on:
   workflow_call:
@@ -30,7 +30,7 @@ jobs:
     name: Call Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
     with:
-      push-image: ${{ fromJSON(vars.PUSH_STAGING_IMAGE || 'true') }}
+      push-image: ${{ fromJSON(vars.PUSH_PR_IMAGE || 'false') }}
     secrets: inherit
 
   call-scan-docker:
@@ -41,16 +41,6 @@ jobs:
     with:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
     secrets: inherit
-
-  call-cd-deploy:
-    needs: call-build-docker
-    if: startsWith(github.head_ref || github.ref_name, 'release/')
-    name: Call Deploy Image Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
-    with:
-      link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
-      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/staging/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
-      environment: 'staging'
 
   call-trigger-tests:
     needs: call-build-docker
