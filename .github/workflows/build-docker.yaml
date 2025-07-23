@@ -111,14 +111,10 @@ jobs:
           set -o pipefail
           echo "Updating version.json with link tag: $LINK_TAG"
           [ -s version.json ] || echo '{}' > version.json
-      
-          RELEASE_NAME="${RELEASE_NAME:-null}"  # fallback to null if not set
-          jq --arg release "$RELEASE_NAME" \
-             --arg tag "$LINK_TAG" \
-             --arg commit "${GITHUB_SHA:0:7}" \
-             '.version = $tag | .commit = $commit | (.release = ($release | select(. != "null")) // .release)' \
-             version.json > tmp.json && mv tmp.json version.json
-      
+              
+          jq --arg release ${{ env.RELEASE_NAME }} --arg tag ${{ env.LINK_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
+            '.version = $tag | .commit = $commit | (.release = $release // .release)' version.json > tmp.json && mv tmp.json version.json          
+          
           echo "Updated version.json:"
           cat version.json
 
