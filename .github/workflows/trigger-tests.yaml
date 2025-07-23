@@ -9,7 +9,6 @@ on:
       current-tag:
         type: string
         required: true
-        default: ${{ inputs.link-tag }}
       environment:
         type: string
         required: true
