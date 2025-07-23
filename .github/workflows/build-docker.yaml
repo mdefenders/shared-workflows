@@ -41,8 +41,8 @@ jobs:
         run: |
           echo "DOCKERHUB_REPO=$GITHUB_REPOSITORY" >> $GITHUB_ENV
           
-          if [[ $GITHUB_REF_NAME == master ]]; then
-            echo "Master tag/branch found"
+          if [[ $GITHUB_REF_NAME == main ]]; then
+            echo "Main tag/branch found"
             RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
             if [[ -z $RELEASE_NAME ]]; then
               "No valid release name found in version.json,exiting"
