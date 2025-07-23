@@ -7,12 +7,12 @@ jobs:
   call-code-quality:
     if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Code Quality Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/modules/code-quality.yaml@dev
 
   call-build-docker:
     if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Build Docker Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/modules/build-docker.yaml@dev
     with:
       push-image: ${{ fromJSON(vars.PUSH_FB_IMAGE || 'false') }}
     secrets: inherit
