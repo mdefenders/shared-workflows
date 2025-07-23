@@ -4,6 +4,19 @@ on:
   workflow_call:
 
 jobs:
+  check-release-branch:
+    if: startsWith(github.ref, 'refs/heads/release/')
+    name: Check Release Branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate SemVer Format
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Validating branch: $BRANCH_NAME"
+          if [[ ! "$BRANCH_NAME" =~ ^release\/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Branch name must follow release/x.y.z (SemVer) format"
+            exit 1
+          fi
   call-code-quality:
     needs: check-release-branch
     if: startsWith(github.ref, 'refs/heads/release/')
