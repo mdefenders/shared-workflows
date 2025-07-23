@@ -5,18 +5,35 @@ on:
 
 jobs:
   call-get-tag:
-    name: Get Latest Tag
+    if: startsWith(github.head_ref || github.ref_name, 'main')
+    name: Check Release Branch
     runs-on: ubuntu-latest
+    outputs:
+      link-tag: ${{ steps.get-tag.outputs.link-tag }}
     steps:
-      - name: Checkout code
+      - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get latest tag
-        id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
+      - name: Validate SemVer Format
+        id: get-tag
+        run: |
+          git fetch origin main --tags
 
-      - name: Print latest tag
-        run: echo "Latest tag is ${{ steps.get-latest-tag.outputs.tag }}"
+          LATEST_TAG=$(git tag -l | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "No SemVer tags found"
+            exit 1
+          fi
+          TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
+          if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
+            echo "Tag $LATEST_TAG is NOT from main branch"
+            exit 1
+          fi
+          echo "Latest SemVer tag: $LATEST_TAG"
+          echo "link-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
 
 #  call-cd-deploy:

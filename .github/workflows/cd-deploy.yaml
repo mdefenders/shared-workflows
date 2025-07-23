@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Git
         run: |
@@ -33,7 +35,7 @@ jobs:
           echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"          
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
           git add "${{ inputs.gitops-file }}"
-          git fetch origin ${{ github.ref_name }}
+          git fetch origin --tags ${{ github.ref_name }}
           git merge origin/${{ github.ref_name }}
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
           if [[ ${{ inputs.environment }} == 'preprod' ]]; then
