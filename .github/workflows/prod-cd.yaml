@@ -62,7 +62,7 @@ jobs:
       environment: 'prod'
 
   input-test:
-    needs: call-cd-deploy
+    needs: []call-cd-deploy, call-get-tag]
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Test Input
     runs-on: ubuntu-latest
