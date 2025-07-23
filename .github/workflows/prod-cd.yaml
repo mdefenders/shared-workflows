@@ -72,7 +72,7 @@ jobs:
 
   rollback-cd-deploy:
     needs: call-trigger-tests
-    if: failure() && startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != null && needs.call-cd-deploy.outputs.current-tag != ''
+    if: startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != null && needs.call-cd-deploy.outputs.current-tag != ''
     name: Call Rollback Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
