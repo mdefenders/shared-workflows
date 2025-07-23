@@ -44,8 +44,10 @@ jobs:
             TAG=""
           fi
           echo "current-tag=$TAG" >> $GITHUB_OUTPUT
+          
 
       - name: Update GitOps file and release tag
+        if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}
         run: |
           if [[ -z "${{ inputs.link-tag }}" ]]; then
             echo "No Tag provided. Exiting."
@@ -72,7 +74,7 @@ jobs:
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Print summary
-        if: always()
+        if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}
         run: |
           echo '### CD Action:' >> $GITHUB_STEP_SUMMARY
             echo "Pushed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" GitOps>> $GITHUB_STEP_SUMMARY
