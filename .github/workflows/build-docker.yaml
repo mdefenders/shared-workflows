@@ -116,7 +116,7 @@ jobs:
           cat version.json
 
       - name: Commit version.json
-        if: ${{ inputs.push-image && inputs.commit-version || env.RELEASE_NAME }}
+        if: ${{ github.event_name == 'push' && (inputs.push-image && inputs.commit-version || env.RELEASE_NAME) }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"          
