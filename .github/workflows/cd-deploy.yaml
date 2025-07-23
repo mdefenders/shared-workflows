@@ -12,11 +12,16 @@ on:
       environment:
         type: string
         required: true
+    outputs:
+      current-tag:
+        value: ${{ jobs.deploy-image.outputs.current-tag }}
 
 jobs:
   deploy-image:
     name: Update GitOps values file
     runs-on: ubuntu-latest
+    outputs:
+      current-tag: ${{ steps.get-tag.outputs.current-tag }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -27,6 +32,18 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Read tag from YAML file
+        id: get-tag
+        run: |
+          TAG=$(cat "${{ inputs.gitops-file }}" | grep ^tag: | cut -f2 -d' ')
+          if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Current=$TAG"
+          else
+            echo "Current tag is not in SemVer format: $TAG"
+          TAG=""
+          fi
+          echo "current-tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Update GitOps file and release tag
         run: |
