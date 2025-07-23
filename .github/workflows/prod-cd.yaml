@@ -61,18 +61,6 @@ jobs:
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
 
-  input-test:
-    needs: [ call-cd-deploy, call-get-tag ]
-    if: startsWith(github.head_ref || github.ref_name, 'main')
-    name: Test Input
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print Input
-        run: |
-          echo "Input Link Tag: ${{ needs.call-get-tag.outputs.link-tag }}"
-          echo "Input GitOps File Path: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}"
-          echo "Input Current Tag: ${{ needs.call-cd-deploy.outputs.current-tag }}"
-
   call-trigger-tests:
     needs: call-cd-deploy
     if: startsWith(github.head_ref || github.ref_name, 'main') # && needs.call-cd-deploy.outputs.current-tag != needs.call-get-tag.outputs.link-tag
@@ -88,6 +76,6 @@ jobs:
     name: Call Rollback Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
-      link-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
+      link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'

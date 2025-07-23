@@ -6,9 +6,15 @@ on:
       link-tag:
         type: string
         required: true
+      current-tag:
+        type: string
+        required: true
       environment:
         type: string
         required: true
+    outputs:
+      current-tag:
+        value: ${{ inputs.current-tag }}
 
 jobs:
   trigger-tests:
