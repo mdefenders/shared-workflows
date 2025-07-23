@@ -5,6 +5,7 @@ on:
 
 jobs:
   call-code-quality:
+    needs: check-release-branch
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
 
