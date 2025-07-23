@@ -45,7 +45,7 @@ jobs:
           repository: ${{ github.repository }}
           tag: ${{ env.LINK_TAG }}
 
-      - name: Exit if image exists
+      - name: Exit if image not found
         if: steps.check-image.outputs.tag == 'not found'
         run: |
           echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found . Exiting."
