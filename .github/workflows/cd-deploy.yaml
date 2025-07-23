@@ -43,7 +43,8 @@ jobs:
             fi
             git tag "${{ inputs.link-tag }}"
           fi
-          git push
+          git push || echo "No changes to push"
+          git push origin "${{ inputs.link-tag }}" || echo "No tags to push tag"
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Print summary
