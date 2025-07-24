@@ -15,6 +15,9 @@ on:
     outputs:
       current-tag:
         value: ${{ inputs.current-tag }}
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
 
 jobs:
   trigger-tests:
