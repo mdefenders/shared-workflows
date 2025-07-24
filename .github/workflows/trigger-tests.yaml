@@ -112,6 +112,7 @@ jobs:
         if: ${{ fromJSON(vars.NOTIFY_DEPLY_SUCCESS || 'true') }}
         run: |
           MESSAGE="${GITHUB_REPOSITORY##*/} has been successfully deployed to *${{ inputs.environment }}* environment.\n\
+          Workflow Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\n\
           Service URL: $SERVICE_URL\n\
           Tag: ${{ inputs.link-tag }}"         
           
