@@ -74,7 +74,7 @@ jobs:
           SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
           export SERVICE_URL
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
-          echo "Running tests for $APP_NAME in environment: ${{ inputs.environment }}"
+          echo "Running tests for ${GITHUB_REPOSITORY##*/} in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
             dev)
               mkdir coverage
@@ -104,3 +104,13 @@ jobs:
           echo '```bash' >> $GITHUB_STEP_SUMMARY          
           cat coverage/output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Notyfy about test results
+        if: ${{ fromJSON(or(vars.NOTIFY_DEPLY_SUCCESS, 'true')) }}
+        run: |
+          MESSAGE="GitHub Action run completed successfully for ${GITHUB_REPOSITORY##*/} in environment: \
+          ${{ inputs.environment }}. \
+          Service is available at $SERVICE_URL with tag ${{ inputs.link-tag }}."
+          curl -X POST -H 'Content-type: application/json' \
+          --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+          echo "Sent ot slack: $MESSAGE"
