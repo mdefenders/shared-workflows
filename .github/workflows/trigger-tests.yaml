@@ -115,5 +115,5 @@ jobs:
           ${{ inputs.environment }}. \
           Service is available at $SERVICE_URL with tag ${{ inputs.link-tag }}."
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+          --data "{\"text\":\"$MESSAGE\"}"  ${{ secrets.$SLACK_WEBHOOK_URL }}
           echo "Sent ot slack: $MESSAGE"
