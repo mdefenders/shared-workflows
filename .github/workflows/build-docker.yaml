@@ -80,6 +80,13 @@ jobs:
               TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
               LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
               ;;
+            hotfix/*)
+              echo "Hotfix branch found"
+              RELEASE_NAME="${BRANCH_NAME#hotfix/}"
+              echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+              TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
+              LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
+              ;;          
 
             *)
               echo "Unknown branch: using SHA only"
