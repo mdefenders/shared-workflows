@@ -16,7 +16,7 @@ on:
       current-tag:
         value: ${{ inputs.current-tag }}
     secrets:
-      SLACK_WEBHOOK_URL:
+      CICD_SLACK_WEBHOOK:
         required: true
 
 jobs:
@@ -115,5 +115,5 @@ jobs:
           ${{ inputs.environment }}. \
           Service is available at $SERVICE_URL with tag ${{ inputs.link-tag }}."
           curl -X POST -H 'Content-type: application/json' \
-          --data "{\"text\":\"$MESSAGE\"}"  ${{ secrets.$SLACK_WEBHOOK_URL }}
+          --data "{\"text\":\"$MESSAGE\"}"  ${{ secrets.CICD_SLACK_WEBHOOK }}
           echo "Sent ot slack: $MESSAGE"
