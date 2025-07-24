@@ -72,6 +72,7 @@ jobs:
         run: |
           set -o pipefail
           SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+          export SERVICE_URL
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
           echo "Running tests for $APP_NAME in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
