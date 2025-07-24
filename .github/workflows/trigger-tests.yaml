@@ -106,7 +106,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Notyfy about test results
-        if: ${{ fromJSON(or(vars.NOTIFY_DEPLY_SUCCESS, 'true')) }}
+        if: ${{ fromJSON(vars.NOTIFY_DEPLY_SUCCESS || 'true') }}
         run: |
           MESSAGE="GitHub Action run completed successfully for ${GITHUB_REPOSITORY##*/} in environment: \
           ${{ inputs.environment }}. \
