@@ -46,3 +46,4 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       current-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       environment: 'preprod'
+    secrets: inherit

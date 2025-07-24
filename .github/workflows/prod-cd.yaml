@@ -70,6 +70,7 @@ jobs:
       link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
       current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
       environment: 'prod'
+    secrets: inherit
 
   rollback-cd-deploy:
     needs: call-trigger-tests
@@ -80,3 +81,4 @@ jobs:
       link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
+    secrets: inherit
