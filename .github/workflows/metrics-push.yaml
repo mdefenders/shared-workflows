@@ -7,6 +7,10 @@ on:
         type: string
       workflow-name:
         type: string
+      workflow-success:
+        type: string
+        required: true
+        default: '0'
     secrets:
       PROM_PUSH_USER:
         required: true
@@ -20,19 +24,22 @@ jobs:
     steps:
       - name: Install prom-push-cli
         run: |
-          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || '0.1.6' }}/prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz
-          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz
+          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || '0.1.6' }}/prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz || true
+          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz || true
 
       - name: Push Metrics
         run: |
           if [[ -z "${{ inputs.start-time }}" ]]; then
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name="Push Prometheus Metrics", level="workflow"} 0" >> metrics.prom
+            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=${GITHUB_RUN_ID}, \
+         url=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} 0" >> metrics.prom
           else
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\"} 1" >> metrics.prom
+            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\", run_id=${GITHUB_RUN_ID}, \
+          url=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} ${{ input.workflow-success }}" >> metrics.prom
             echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
-            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\"} $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
+            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=${GITHUB_RUN_ID}, \
+          url=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID} $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
           fi
           cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
-          --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions
+          --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true

@@ -22,9 +22,20 @@ jobs:
       push-image: ${{ fromJSON(vars.PUSH_FB_IMAGE || 'false') }}
     secrets: inherit
 
-  call-metrics-push:
+  call-metrics-push-success:
     needs: [ call-build-docker, call-code-quality, call-metrics-init ]
-    if: ${{ always() && startsWith(github.head_ref || github.ref_name, 'feature/') }}
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'feature/') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Feature Branch CI'
+      workflow-success: '1'
+    secrets: inherit
+
+  call-metrics-push-failure:
+    needs: [ call-build-docker, call-code-quality, call-metrics-init ]
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'feature/') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
