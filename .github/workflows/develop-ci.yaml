@@ -53,23 +53,23 @@ jobs:
       environment: 'dev'
     secrets: inherit
 
-    call-metrics-push-success:
-      needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
-      if: ${{ startsWith(github.head_ref || github.ref_name, 'develop') }}
-      name: Call Push Metrics Workflow
-      uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
-      with:
-        start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-        workflow-name: 'Develop Branch CI'
-        workflow-success: 1
-      secrets: inherit
+  call-metrics-push-success:
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'develop') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Develop Branch CI'
+      workflow-success: 1
+    secrets: inherit
 
-    call-metrics-push-failure:
-      needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
-      if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'develop') }}
-      name: Call Push Metrics Workflow
-      uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
-      with:
-        start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-        workflow-name: 'Develop Branch CI'
-      secrets: inherit
+  call-metrics-push-failure:
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'develop') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Develop Branch CI'
+    secrets: inherit
