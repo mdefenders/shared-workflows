@@ -19,7 +19,7 @@ jobs:
           fi
 
   call-metrics-init:
-    if: startsWith(github.head_ref || github.ref_name, 'develop')
+    if: startsWith(github.head_ref || github.ref_name, 'release/')
     name: Call Init Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
 
@@ -71,7 +71,7 @@ jobs:
 
   call-metrics-push-success:
     needs: [ check-release-branch, call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
-    if: ${{ startsWith(github.head_ref || github.ref_name, 'develop') }}
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'release/') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
@@ -82,7 +82,7 @@ jobs:
 
   call-metrics-push-failure:
     needs: [ check-release-branch, call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
-    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'develop') }}
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'release/') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
