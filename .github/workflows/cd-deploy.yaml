@@ -12,6 +12,9 @@ on:
       environment:
         type: string
         required: true
+      rollback:
+        type: boolean
+        default: false
     outputs:
       current-tag:
         value: ${{ jobs.deploy-image.outputs.current-tag }}
@@ -33,18 +36,23 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Read tag from YAML file
-        id: get-tag
+      - name: Validate Prod Deployment
+        if: ${{ inputs.environment == 'prod' && inputs.rollback == false }}
         run: |
-          TAG=$(cat "${{ inputs.gitops-file }}" | grep ^tag: | cut -f2 -d' ')
-          if [[ $TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Current tag: $TAG"
+          echo "Current version: ${{ steps.get-tag.outputs.current-tag }}"
+          echo "New version: ${{ inputs.link-tag }}"
+      
+          # Check if semver is available (optional)
+          npx semver --version > /dev/null || { echo "Missing semver tool"; exit 1; }
+      
+          is_valid=$(npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.link-tag }}")
+      
+          if [ -z "$is_valid" ]; then
+            echo "ERROR: New version ${{ inputs.link-tag }} is not greater or equal to current ${{ steps.get-tag.outputs.current-tag }}"
+            exit 1
           else
-            echo "Current tag is not in SemVer format: $TAG"
-            TAG=""
+            echo "New version is valid (>= current)"
           fi
-          echo "current-tag=$TAG" >> $GITHUB_OUTPUT
-          
 
       - name: Update GitOps file and release tag
         if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}

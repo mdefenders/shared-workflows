@@ -86,6 +86,7 @@ jobs:
       link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
+      rollback: true
     secrets: inherit
 
   call-metrics-push-success:
