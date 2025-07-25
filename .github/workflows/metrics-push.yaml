@@ -28,14 +28,15 @@ jobs:
 
       - name: Push Metrics
         run: |
+          RUN_URL="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           if [[ -z "${{ inputs.start-time }}" ]]; then
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\" 0" >> metrics.prom
+            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"$RUN_URL\" 0" >> metrics.prom
           else
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\" ${{ inputs.workflow-success }}" >> metrics.prom
+            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"$RUN_URL\" ${{ inputs.workflow-success }}" >> metrics.prom
             echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
-            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\" $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
+            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", url=\"$RUN_URL\" $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
           fi
           cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
           --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
