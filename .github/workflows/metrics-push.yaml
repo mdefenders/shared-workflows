@@ -9,7 +9,7 @@ on:
         type: string
       workflow-success:
         type: string
-        default: '0'
+        default: 0
     secrets:
       PROM_PUSH_USER:
         required: true

@@ -30,7 +30,7 @@ jobs:
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Feature Branch CI'
-      workflow-success: '1'
+      workflow-success: 1
     secrets: inherit
 
   call-metrics-push-failure:
