@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Install prom-push-cli
         run: |
-          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || 0.1.6 }}//prom-push-cli_${{ vars.PROM_CLI_VERSION || 0.1.6 }}/_Linux_x86_64.tar.gz
-          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || 0.1.6 }}/_Linux_x86_64.tar.gz
+          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || '0.1.6' }}//prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}/_Linux_x86_64.tar.gz
+          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}/_Linux_x86_64.tar.gz
 
       - name: Push Metrics
         run: |
