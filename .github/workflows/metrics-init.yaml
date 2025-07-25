@@ -8,7 +8,7 @@ on:
 
 jobs:
   record-start-time:
-    name: Push Docker image to Docker Hub
+    name: Metrics Init
     runs-on: ubuntu-latest
     outputs:
       start-time: ${{ steps.record-start-time.outputs.start-time }}
