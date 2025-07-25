@@ -28,19 +28,14 @@ jobs:
 
       - name: Push Metrics
         run: |
-          escape_prom_label_value() {
-            echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-          }
-          SERVICE_NAME=$(escape_prom_label_value "${GITHUB_REPOSITORY}")
           if [[ -z "${{ inputs.start-time }}" ]]; then
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${SERVICE_NAME}\" 0" >> metrics.prom
+            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} 0" >> metrics.prom
           else
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${SERVICE_NAME}\" ${{ inputs.workflow-success }}" >> metrics.prom
+            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} ${{ inputs.workflow-success }}" >> metrics.prom
             echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
-            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${SERVICE_NAME}\" $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
+            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
           fi
-          cat metrics.prom
           cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
           --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
