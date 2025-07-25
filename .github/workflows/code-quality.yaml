@@ -1,4 +1,4 @@
-name: Publish Docker Image
+name: Call Code Quality Workflow
 
 on:
   workflow_call:

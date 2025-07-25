@@ -1,4 +1,4 @@
-name: PreProd Branch CI
+name: Promote to Prod
 
 on:
   workflow_call:

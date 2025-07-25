@@ -1,0 +1,38 @@
+name: Metrics Push Workflow
+
+on:
+  workflow_call:
+    inputs:
+      start-time:
+        type: string
+      workflow-name:
+        type: string
+    secrets:
+      PROM_PUSH_USER:
+        required: true
+      PROM_PUSH_TOKEN:
+        required: true
+
+jobs:
+  metrics-push:
+    name: Push Metrics to Grafana
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install prom-push-cli
+        run: |
+          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || 0.1.6 }}//prom-push-cli_${{ vars.PROM_CLI_VERSION || 0.1.6 }}/_Linux_x86_64.tar.gz
+          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || 0.1.6 }}/_Linux_x86_64.tar.gz
+
+      - name: Push Metrics
+        run: |
+          if [[ -z "${{ inputs.start-time }}" ]]; then
+            echo "# TYPE gha_workflow_success gauge" >> metrics.prom
+            echo "gha_workflow_success{name="Push Prometheus Metrics", level="workflow"} 0" >> metrics.prom
+          else
+            echo "# TYPE gha_workflow_success gauge" >> metrics.prom
+            echo "gha_workflow_success{name=\"Push Prometheus Metrics\", level=\"workflow\"} 1" >> metrics.prom
+            echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
+            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\"} $(($(date +%s) - ${{ inputs.start-time }}))" >> metrics.prom
+          fi
+          cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
+          --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions

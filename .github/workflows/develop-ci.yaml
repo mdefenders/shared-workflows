@@ -38,7 +38,7 @@ jobs:
       environment: 'dev'
 
   call-trigger-tests:
-    needs: call-build-docker
+    needs: [call-build-docker, call-cd-deploy]
     if: startsWith(github.head_ref || github.ref_name, 'develop')
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
