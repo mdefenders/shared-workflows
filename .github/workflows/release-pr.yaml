@@ -18,12 +18,16 @@ jobs:
             exit 1
           fi
 
+  call-metrics-init:
+    if: startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/')
+    name: Call Init Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
+
   call-code-quality:
     needs: check-release-branch
     if: startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/')
     name: Call Code Quality Workflow
     uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
-
 
   call-build-docker:
     needs: call-code-quality
@@ -52,4 +56,25 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       current-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       environment: 'staging'
+    secrets: inherit
+
+  call-metrics-push-success:
+    needs: [ check-release-branch, call-build-docker, call-scan-docker, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/')
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Release/Hotfix Branch PR CI'
+      workflow-success: 1
+    secrets: inherit
+
+  call-metrics-push-failure:
+    needs: [ check-release-branch, call-build-docker, call-scan-docker, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/')
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Release/Hotfix Branch PR CI'
     secrets: inherit
