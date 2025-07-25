@@ -23,7 +23,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push:
-    needs: [ call-build-docker, call-cd-deploy, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-code-quality, call-metrics-init ]
     if: ${{ always() && startsWith(github.head_ref || github.ref_name, 'feature/') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
