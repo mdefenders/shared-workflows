@@ -71,7 +71,7 @@ jobs:
 
   call-metrics-push-failure:
     needs: [ check-release-branch, call-build-docker, call-scan-docker, call-trigger-tests, call-code-quality, call-metrics-init ]
-    if: startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/')
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'release/' || github.ref_name, 'hotfix/') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
