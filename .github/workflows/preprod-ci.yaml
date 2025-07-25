@@ -4,6 +4,11 @@ on:
   workflow_call:
 
 jobs:
+  call-metrics-init:
+    if: startsWith(github.head_ref || github.ref_name, 'main')
+    name: Call Init Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
+
   call-code-quality:
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Code Quality Workflow
@@ -46,4 +51,25 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       current-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       environment: 'preprod'
+    secrets: inherit
+
+  call-metrics-push-success:
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'main') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'PreProd Branch CI'
+      workflow-success: 1
+    secrets: inherit
+
+  call-metrics-push-failure:
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'PreProd Branch CI'
     secrets: inherit
