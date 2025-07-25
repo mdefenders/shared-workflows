@@ -100,7 +100,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
