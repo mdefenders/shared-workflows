@@ -4,6 +4,11 @@ on:
   workflow_call:
 
 jobs:
+  call-metrics-init:
+    if: startsWith(github.head_ref || github.ref_name, 'main')
+    name: Call Init Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
+
   call-get-tag:
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Check Release Branch
@@ -81,4 +86,25 @@ jobs:
       link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
+    secrets: inherit
+
+  call-metrics-push-success:
+    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
+    if: ${{ startsWith(github.head_ref || github.ref_name, 'main') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Promote to Prod'
+      workflow-success: 1
+    secrets: inherit
+
+  call-metrics-push-failure:
+    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
+    name: Call Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    with:
+      start-time: ${{ needs.call-metrics-init.outputs.start-time }}
+      workflow-name: 'Promote to Prod'
     secrets: inherit
