@@ -56,17 +56,8 @@ jobs:
           echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found . Exiting."
           exit 1
 
-  call-scan-docker:
-    needs: call-get-tag
-    if: startsWith(github.head_ref || github.ref_name, 'main')
-    name: Call Scan Docker Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
-    with:
-      link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
-    secrets: inherit
-
   call-cd-deploy:
-    needs: call-scan-docker
+    needs: call-get-tag
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
@@ -98,7 +89,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-success:
-    needs: [ call-scan-docker, call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
+    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ startsWith(github.head_ref || github.ref_name, 'main') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -109,7 +100,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-scan-docker, call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
+    needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
