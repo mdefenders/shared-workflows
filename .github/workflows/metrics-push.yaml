@@ -21,7 +21,7 @@ jobs:
     name: Push Logs to Loki
     runs-on: ubuntu-latest
     steps:
-      - name: Push Metrics
+      - name:  Push Logs to Loki
         run: |
           METRIC_TIMESTAMP=$(date +%s)
           LOG_TIMESTAMP=$(date +%s%N)
