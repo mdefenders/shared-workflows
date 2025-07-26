@@ -52,7 +52,7 @@ jobs:
           fi
            cat metrics.prom
            cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
-           --header "Authorization=Basic $${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
+           --header "Authorization=Basic ${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
           curl -ks -X POST ${{ vars.LOKI_PUSH_URL }} \
             -H "Content-Type: application/json" \
             -H "Authorization: Basic ${{ secrets.PROM_PUSH_TOKEN }}" \
