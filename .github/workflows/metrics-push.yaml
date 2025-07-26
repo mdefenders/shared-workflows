@@ -56,5 +56,5 @@ jobs:
           curl -vks -X POST ${{ vars.LOKI_PUSH_URL }} \
             -H "Content-Type: application/json" \
             -H "Authorization: Basic ${{ secrets.PROM_PUSH_TOKEN }}" \
-            -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\",\"run_id\": \"${GITHUB_RUN_ID}\",\"status\": \"${RUN_STATUS}\"},\"values\": [[\"$METRIC_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
+            -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\",\"run_id\": \"${GITHUB_RUN_ID}\",\"status\": \"${RUN_STATUS}\"},\"values\": [[\"$LOG_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
           
