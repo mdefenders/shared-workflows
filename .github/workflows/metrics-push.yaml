@@ -53,8 +53,9 @@ jobs:
           #cat metrics.prom
           #cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
           #--header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
-          curl -vks -X POST ${{ vars.LOKI_PUSH_URL }} \
+          curl -ks -X POST ${{ vars.LOKI_PUSH_URL }} \
             -H "Content-Type: application/json" \
             -H "Authorization: Basic ${{ secrets.PROM_PUSH_TOKEN }}" \
-            -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\",\"run_id\": \"${GITHUB_RUN_ID}\",\"status\": \"${RUN_STATUS}\"},\"values\": [[\"$LOG_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
+            -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\", \
+            \"status\": \"${RUN_STATUS}\"},\"values\": [[\"$LOG_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
           
