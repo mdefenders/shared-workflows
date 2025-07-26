@@ -33,26 +33,16 @@ jobs:
           DURATION=$(($METRIC_TIMESTAMP - ${{ inputs.start-time }}))
           LOG_ENTRY="Workflow run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"s
           if [[ -z "${{ inputs.start-time }}" ]]; then
-            echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} 0 $METRIC_TIMESTAMP" >> metrics.prom
           LOG_ENTRY="${LOG_ENTRY} status=failure"
           RUN_STATUS="failure"
           else
-            echo "# TYPE gha_workflow_success gauge" >> metrics.prom
-            echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} ${{ inputs.workflow-success }} $METRIC_TIMESTAMP" >> metrics.prom
-             echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
-             echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} $DURATION $METRIC_TIMESTAMP" >> metrics.prom
-          LOG_ENTRY="${LOG_ENTRY} status=success"
+            LOG_ENTRY="${LOG_ENTRY} status=success"
             if [[ "${{ inputs.workflow-success }}" == '0' ]]; then
               RUN_STATUS="failure"
             else
               RUN_STATUS="success"
             fi        
           fi
-           cat metrics.prom
-           cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
-           --header "Authorization=Basic ${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
           curl -ks -X POST ${{ vars.LOKI_PUSH_URL }} \
             -H "Content-Type: application/json" \
             -H "Authorization: Basic ${{ secrets.PROM_PUSH_TOKEN }}" \
