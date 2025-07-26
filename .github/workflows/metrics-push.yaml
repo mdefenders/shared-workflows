@@ -29,16 +29,26 @@ jobs:
       - name: Push Metrics
         run: |
           METRIC_TIMESTAMP=$(date +%s)
+          LOG_TIMESTAMP=$(date +%s%N)
+          DURATION=$(($METRIC_TIMESTAMP - ${{ inputs.start-time }}))
+          LOG_ENTRY="Workflow run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"
           if [[ -z "${{ inputs.start-time }}" ]]; then
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
             echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} 0 $METRIC_TIMESTAMP" >> metrics.prom
+            LOG_ENTRY="${LOG_ENTRY} status=failure"
+            RUN_STATUS="failure"
           else
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
             echo "gha_workflow_success{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} ${{ inputs.workflow-success }} $METRIC_TIMESTAMP" >> metrics.prom
             echo "# TYPE gha_workflow_duration_seconds gauge" >> metrics.prom
-            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} $(($(date +%s) - ${{ inputs.start-time }})) $METRIC_TIMESTAMP" >> metrics.prom
+            echo "gha_workflow_duration_seconds{name=\"${{ inputs.workflow-name }}\", level=\"workflow\", run_id=\"${GITHUB_RUN_ID}\", service=\"${GITHUB_REPOSITORY}\"} $DURATION $METRIC_TIMESTAMP" >> metrics.prom
+            LOG_ENTRY="${LOG_ENTRY} status=success"
+            RUN_STATUS="success"
           fi
           cat metrics.prom
           cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
           --header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
+          curl -ks -X POST https://${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}@${{ vars.LOKI_PUSH_HOST }}/loki/api/v1/push \
+            -H "Content-Type: application/json" \ 
+            -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\",\"run_id\": \"1${GITHUB_RUN_ID}\",\"status\": \"${RUN_STATUS}\"},\"values\": [[\"$METRIC_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
