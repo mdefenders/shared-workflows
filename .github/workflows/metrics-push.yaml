@@ -1,4 +1,4 @@
-name: Metrics Push Workflow
+name: Logs Push Workflow
 
 on:
   workflow_call:
@@ -18,14 +18,9 @@ on:
 
 jobs:
   metrics-push:
-    name: Push Metrics to Grafana
+    name: Push Logs to Loki
     runs-on: ubuntu-latest
     steps:
-      - name: Install prom-push-cli
-        run: |
-          wget https://github.com/fgouteroux/prom-push-cli/releases/download/v${{ vars.PROM_CLI_VERSION || '0.1.6' }}/prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz || true
-          tar -zxf prom-push-cli_${{ vars.PROM_CLI_VERSION || '0.1.6' }}_Linux_x86_64.tar.gz || true
-
       - name: Push Metrics
         run: |
           METRIC_TIMESTAMP=$(date +%s)
