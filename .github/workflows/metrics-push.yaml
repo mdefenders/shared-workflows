@@ -31,6 +31,7 @@ jobs:
           METRIC_TIMESTAMP=$(date +%s)
           LOG_TIMESTAMP=$(date +%s%N)
           DURATION=$(($METRIC_TIMESTAMP - ${{ inputs.start-time }}))
+          AUTH_TOKEN=$(echo -n "${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" | base64)
           LOG_ENTRY="Workflow run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"
           if [[ -z "${{ inputs.start-time }}" ]]; then
             echo "# TYPE gha_workflow_success gauge" >> metrics.prom
@@ -49,6 +50,7 @@ jobs:
           #cat metrics.prom
           #cat metrics.prom | ./prom-push-cli --url ${{ vars.PROM_PUSH_URL }} \
           #--header "Authorization=Bearer ${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}" --job-label github_actions || true
-          curl -ks -X POST https://${{ secrets.PROM_PUSH_USER }}:${{ secrets.PROM_PUSH_TOKEN }}@${{ vars.LOKI_PUSH_HOST }}/loki/api/v1/push \
+          curl -ks -X POST https://{{ vars.LOKI_PUSH_HOST }}/loki/api/v1/push \
             -H "Content-Type: application/json" \ 
+            -H "Authorization: Basic $AUTH_TOKEN" \
             -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\",\"run_id\": \"${GITHUB_RUN_ID}\",\"status\": \"${RUN_STATUS}\"},\"values\": [[\"$METRIC_TIMESTAMP\", \"$LOG_ENTRY\"]]}]}"
