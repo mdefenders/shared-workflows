@@ -26,16 +26,16 @@ jobs:
           METRIC_TIMESTAMP=$(date +%s)
           LOG_TIMESTAMP=$(date +%s%N)
           DURATION=$(($METRIC_TIMESTAMP - ${{ inputs.start-time }}))
-          LOG_ENTRY="Workflow run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"s
+          LOG_ENTRY="run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"s
           if [[ -z "${{ inputs.start-time }}" ]]; then
-          LOG_ENTRY="${LOG_ENTRY} status=failure"
-          RUN_STATUS="failure"
+            RUN_STATUS="failure"
           else
-            LOG_ENTRY="${LOG_ENTRY} status=success"
             if [[ "${{ inputs.workflow-success }}" == '0' ]]; then
               RUN_STATUS="failure"
+              LOG_ENTRY="${LOG_ENTRY} status=failure"
             else
               RUN_STATUS="success"
+              LOG_ENTRY="${LOG_ENTRY} status=success"          
             fi        
           fi
           curl -ks -X POST ${{ vars.LOKI_PUSH_URL }} \
