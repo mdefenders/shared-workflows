@@ -26,19 +26,19 @@ jobs:
           METRIC_TIMESTAMP=$(date +%s)
           LOG_TIMESTAMP=$(date +%s%N)
           DURATION=$(($METRIC_TIMESTAMP - ${{ inputs.start-time }}))
-          LOG_ENTRY={\"run_id\"=\"${GITHUB_RUN_ID}\", \"name\"=\"${{ inputs.workflow-name }}\", \"duration\"=\"$DURATION"\"
+          LOG_ENTRY="Workflow run_id=${GITHUB_RUN_ID} name=${{ inputs.workflow-name }} duration=$DURATION"s
           if [[ -z "${{ inputs.start-time }}" ]]; then
-          LOG_ENTRY=${LOG_ENTRY}, \"status\"=\"failure\"}
+          LOG_ENTRY="${LOG_ENTRY} status=failure"
           RUN_STATUS="failure"
           else
+            LOG_ENTRY="${LOG_ENTRY} status=success"
             if [[ "${{ inputs.workflow-success }}" == '0' ]]; then
               RUN_STATUS="failure"
             else
               RUN_STATUS="success"
-            fi
-            LOG_ENTRY=${LOG_ENTRY}, \"status\"=\"$RUN_STATUS\"}          
+            fi        
           fi
-          curl -vks -X POST ${{ vars.LOKI_PUSH_URL }} \
+          curl -ks -X POST ${{ vars.LOKI_PUSH_URL }} \
             -H "Content-Type: application/json" \
             -H "Authorization: Basic ${{ secrets.PROM_PUSH_TOKEN }}" \
             -d "{\"streams\": [{\"stream\": {\"service\": \"${GITHUB_REPOSITORY}\",\"name\": \"${{ inputs.workflow-name }}\", \
