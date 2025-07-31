@@ -67,7 +67,6 @@ jobs:
           fi
 
       - name: Update GitOps file and release tag
-        if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}
         run: |
           if [[ -z "${{ inputs.link-tag }}" ]]; then
             echo "No Tag provided. Exiting."
