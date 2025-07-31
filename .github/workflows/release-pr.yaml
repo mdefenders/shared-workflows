@@ -44,7 +44,7 @@ jobs:
     name: Call Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
-      link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
+      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
     secrets: inherit
 
   call-trigger-tests:
@@ -53,8 +53,8 @@ jobs:
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
-      link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
-      current-tag: ${{ needs.call-build-docker.outputs.link-tag }}
+      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
+      current-tag: ${{ needs.call-build-docker.outputs.new-tag }}
       environment: 'staging'
     secrets: inherit
 

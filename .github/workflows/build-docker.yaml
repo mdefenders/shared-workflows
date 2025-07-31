@@ -12,8 +12,8 @@ on:
         type: boolean
         default: false
     outputs:
-      link-tag:
-        value: ${{ jobs.build-and-push.outputs.link-tag }}
+      new-tag:
+        value: ${{ jobs.build-and-push.outputs.new-tag }}
     secrets:
       DOCKER_PASSWORD:
         required: true
@@ -23,7 +23,7 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     outputs:
-      link-tag: ${{ steps.get-tag.outputs.link-tag }}
+      new-tag: ${{ steps.get-tag.outputs.new-tag }}
     steps:
       - name: Cleanup the build folder
         if: ${{ inputs.push-image }}
@@ -91,7 +91,7 @@ jobs:
 
           echo "TAGS=$TAGS" >> "$GITHUB_ENV"
           echo "LINK_TAG=$LINK_TAG" >> "$GITHUB_ENV"
-          echo "link-tag=$LINK_TAG" >> "$GITHUB_OUTPUT"
+          echo "new-tag=$LINK_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.0.0
