@@ -21,6 +21,8 @@ on:
     outputs:
       current-tag:
         value: ${{ jobs.deploy-image.outputs.current-tag }}
+      new-tag:
+        value: ${{ inputs.new-tag }}
 
 jobs:
   deploy-image:
