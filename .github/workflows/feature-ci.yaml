@@ -41,7 +41,7 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'dev'
-      replicas: ${{ vars.DEV_TEST_REPLICAS || '3' }}
+      replicas: ${{ fromJSON(vars.DEV_TEST_REPLICAS || '3') }}
 
   call-trigger-tests:
     needs: call-cd-deploy
@@ -63,7 +63,7 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'dev'
-      replicas: ${{ vars.DEV_REPLICAS || '0' }}
+      replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
 
   call-metrics-push-success:
     needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
