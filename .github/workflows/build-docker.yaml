@@ -60,12 +60,6 @@ jobs:
               LINK_TAG="$RELEASE_NAME"
               ;;
 
-            develop)
-              echo "Develop branch found"
-              TAGS="$GITHUB_REPOSITORY:develop-latest,$GITHUB_REPOSITORY:develop-$SHORT_SHA"
-              LINK_TAG="develop-$SHORT_SHA"
-              ;;
-
             feature/*)
               echo "Feature branch found"
               FEATURE_NAME="${BRANCH_NAME#feature/}"
