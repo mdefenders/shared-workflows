@@ -1,0 +1,18 @@
+name: Metrics Init Workflow
+
+on:
+  workflow_call:
+    outputs:
+      start-time:
+        value: ${{ jobs.record-start-time.outputs.start-time }}
+
+jobs:
+  record-start-time:
+    name: Metrics Init
+    runs-on: ubuntu-latest
+    outputs:
+      start-time: ${{ steps.record-start-time.outputs.start-time }}
+    steps:
+      - name: Get start time
+        id: record-start-time
+        run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT

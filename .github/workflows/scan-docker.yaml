@@ -1,0 +1,46 @@
+name: Scan Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      link-tag:
+        type: string
+        required: true
+    secrets:
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  pull-and-scan:
+    name: Pull and scan Docker image
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Install Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/download/v${{ vars.TRIVY_VERSION }}/trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
+          sudo dpkg -i trivy_${{ vars.TRIVY_VERSION }}_Linux-64bit.deb
+          mkdir -p contrib
+          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/mdefenders/misc/refs/heads/main/aquasecurity/trivy/contrib/html.tpl
+
+      - name: Pull image
+        run: docker pull $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
+
+      - name: Run Trivy
+        run: |
+          set -o pipefail
+          trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html --exit-code 1 --severity CRITICAL,HIGH $GITHUB_REPOSITORY:'${{ inputs.link-tag }}'
+
+      - name: Print summary
+        if: always()
+        run: |
+          echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
+          echo '<details><summary>Click to expand Image Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
+          cat trivy-report.html >> $GITHUB_STEP_SUMMARY
+          echo '</details>' >> $GITHUB_STEP_SUMMARY

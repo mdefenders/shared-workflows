@@ -1,0 +1,156 @@
+name: Build Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      build-args:
+        type: string
+      push-image:
+        type: boolean
+        default: false
+      commit-version:
+        type: boolean
+        default: false
+    outputs:
+      link-tag:
+        value: ${{ jobs.build-and-push.outputs.link-tag }}
+    secrets:
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  build-and-push:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    outputs:
+      link-tag: ${{ steps.get-tag.outputs.link-tag }}
+    steps:
+      - name: Cleanup the build folder
+        if: ${{ inputs.push-image }}
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Get Tag
+        id: get-tag
+        run: |
+          echo "DOCKERHUB_REPO=$GITHUB_REPOSITORY" >> "$GITHUB_ENV"
+          FULL_SHA=${{ github.event.pull_request.head.sha || github.sha }}
+          SHORT_SHA="${FULL_SHA:0:7}"
+
+          # Normalize the branch name for both push and pull_request
+          BRANCH_NAME="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          echo "Resolved branch: $BRANCH_NAME"
+
+          case "$BRANCH_NAME" in
+            main)
+              echo "Main tag/branch found"
+              RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
+              if [[ -z "$RELEASE_NAME" ]]; then
+                echo "No valid release name found in version.json, exiting"
+                exit 1
+              fi
+              TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$RELEASE_NAME"
+              echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+              LINK_TAG="$RELEASE_NAME"
+              ;;
+
+            develop)
+              echo "Develop branch found"
+              TAGS="$GITHUB_REPOSITORY:develop-latest,$GITHUB_REPOSITORY:develop-$SHORT_SHA"
+              LINK_TAG="develop-$SHORT_SHA"
+              ;;
+
+            feature/*)
+              echo "Feature branch found"
+              FEATURE_NAME="${BRANCH_NAME#feature/}"
+              TAGS="$GITHUB_REPOSITORY:$FEATURE_NAME-latest,$GITHUB_REPOSITORY:$FEATURE_NAME-$SHORT_SHA"
+              LINK_TAG="$FEATURE_NAME-$SHORT_SHA"
+              ;;
+
+            release/*)
+              echo "Release branch found"
+              RELEASE_NAME="${BRANCH_NAME#release/}"
+              echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+              TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
+              LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
+              ;;
+            hotfix/*)
+              echo "Hotfix branch found"
+              RELEASE_NAME="${BRANCH_NAME#hotfix/}"
+              echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+              TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
+              LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
+              ;;          
+
+            *)
+              echo "Unknown branch: using SHA only"
+              TAGS="$GITHUB_REPOSITORY:$SHORT_SHA"
+              LINK_TAG="$SHORT_SHA"
+              ;;
+          esac
+
+          echo "TAGS=$TAGS" >> "$GITHUB_ENV"
+          echo "LINK_TAG=$LINK_TAG" >> "$GITHUB_ENV"
+          echo "link-tag=$LINK_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        if: ${{ inputs.push-image }}
+        id: meta
+        uses: docker/metadata-action@v5.0.0
+        with:
+          images: ${{ env.DOCKERHUB_REPO }}
+
+      - name: Update version.json
+        if: ${{ inputs.push-image }}
+        run: |
+          set -o pipefail
+          echo "Updating version.json with link tag: $LINK_TAG"
+          [ -s version.json ] || echo '{}' > version.json
+          RELEASE_NAME=${{ env.RELEASE_NAME || 'SNAPSHOT' }}
+          jq --arg release $RELEASE_NAME --arg tag ${{ env.LINK_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
+            '.version = $tag | .commit = $commit | .release = $release' version.json > tmp.json && mv tmp.json version.json          
+          
+          echo "Updated version.json:"
+          cat version.json
+
+      - name: Commit version.json
+        if: ${{ github.event_name == 'push' && (inputs.push-image && inputs.commit-version || env.RELEASE_NAME) }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"          
+          git add version.json
+          git fetch origin ${{ github.ref_name }}
+          git merge origin/${{ github.ref_name }}
+          git commit -m "github-actions[bot] version.json updated with image version $LINK_TAG" || echo "No changes to commit"
+          git push
+
+      - name: Build and push (optional) Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5.0.0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ inputs.push-image }}
+          tags: ${{ env.TAGS }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ inputs.build-args }}
+
+      - name: Print summary
+        if: ${{ inputs.push-image }}
+        run: |
+          echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
+          echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
+          echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
+          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build-and-push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY

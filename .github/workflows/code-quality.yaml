@@ -1,0 +1,68 @@
+name: Call Code Quality Workflow
+
+on:
+  workflow_call:
+
+jobs:
+  quality-check:
+    name: Code Quality Gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code (ESLint)
+        run: npx eslint .
+
+      - name: Vulnerabilities Check (npm audit)
+        run: npm audit --audit-level=high
+
+      - name: Run tests with coverage (Jest)
+        run: |
+          set -o pipefail
+          mkdir coverage
+          npm run test:unit -- --coverage | tee coverage/output.txt
+
+      - name: Check test coverage threshold
+        run: |
+          COVERAGE_LINE=$(grep 'All files' coverage/output.txt || true)
+      
+          if [[ -z "$COVERAGE_LINE" ]]; then
+            echo "Coverage line not found in coverage/output.txt"
+            exit 1
+          fi
+      
+          COVERAGE=$(echo "$COVERAGE_LINE" | awk '{print $4}' | tr -d '%')
+      
+          if ! [[ "$COVERAGE" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+            echo "Parsed coverage is not a valid number: '$COVERAGE'"
+            exit 1
+          fi
+      
+          MIN_COVERAGE=${{ vars.MIN_COVERAGE || 80 }}
+      
+          echo "Minimum coverage threshold is $MIN_COVERAGE%"
+          echo "Current coverage: $COVERAGE%"
+      
+          if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
+            echo "Coverage below threshold ($MIN_COVERAGE%)"
+            exit 1
+          else
+            echo "Coverage meets threshold"
+          fi
+      - name: Print summary
+        run: |
+          echo '### Unit test report:' >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY          
+          cat coverage/output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
