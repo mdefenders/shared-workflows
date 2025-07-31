@@ -15,6 +15,9 @@ on:
       rollback:
         type: boolean
         default: false
+      replicas:
+        type: number
+        default: 3
     outputs:
       current-tag:
         value: ${{ jobs.deploy-image.outputs.current-tag }}
@@ -74,6 +77,7 @@ jobs:
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
           echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"          
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
+          echo "replicas: ${{ inputs.replicas }}" >> "${{ inputs.gitops-file }}"          
           git add "${{ inputs.gitops-file }}"
           git fetch origin --tags ${{ github.ref_name }}
           git merge origin/${{ github.ref_name }}

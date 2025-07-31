@@ -41,6 +41,7 @@ jobs:
       link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'dev'
+      replicas: ${{ vars.DEV_TEST_REPLICAS || '3' }}
 
   call-trigger-tests:
     needs: [call-build-docker, call-cd-deploy]
@@ -52,6 +53,17 @@ jobs:
       current-tag: ${{ needs.call-build-docker.outputs.link-tag }}
       environment: 'dev'
     secrets: inherit
+
+  call-cd-undeploy:
+    needs: call-cd-deploy
+    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    name: Call Deploy Image Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
+    with:
+      link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
+      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
+      environment: 'dev'
+      replicas: ${{ vars.DEV_REPLICAS || '0' }}
 
   call-metrics-push-success:
     needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
