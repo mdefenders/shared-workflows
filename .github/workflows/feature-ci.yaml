@@ -60,7 +60,7 @@ jobs:
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
-      link-tag: ${{ needs.call-build-docker.outputs.link-tag }}
+      link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'dev'
       replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
