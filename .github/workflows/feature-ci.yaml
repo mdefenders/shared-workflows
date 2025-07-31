@@ -44,7 +44,7 @@ jobs:
       replicas: ${{ vars.DEV_TEST_REPLICAS || '3' }}
 
   call-trigger-tests:
-    needs: [call-build-docker, call-cd-deploy]
+    needs: call-cd-deploy
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
@@ -55,8 +55,8 @@ jobs:
     secrets: inherit
 
   call-cd-undeploy:
-    needs: call-cd-deploy
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    needs: [call-cd-deploy, call-trigger-tests]
+    if: always() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
@@ -66,22 +66,22 @@ jobs:
       replicas: ${{ vars.DEV_REPLICAS || '0' }}
 
   call-metrics-push-success:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-      workflow-name: 'Featire Branch CI'
+      workflow-name: 'Feature Branch CI'
       workflow-success: 1
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
     if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Call Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-      workflow-name: 'Featire Branch CI'
+      workflow-name: 'Feature Branch CI'
     secrets: inherit
