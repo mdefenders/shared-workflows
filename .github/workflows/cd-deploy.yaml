@@ -74,14 +74,15 @@ jobs:
             echo "No Tag provided. Exiting."
             exit 1
           fi
+          git pull origin ${{ github.ref_name }} || echo "No changes to pull"
+          git fetch --tags origin ${{ github.ref_name }}
+          git merge origin/${{ github.ref_name }}          
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
           echo "tag: ${{ inputs.new-tag }}" >> "${{ inputs.gitops-file }}"          
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
           echo "replicas: ${{ inputs.replicas }}" >> "${{ inputs.gitops-file }}"          
           git add "${{ inputs.gitops-file }}"
-          git fetch origin --tags ${{ github.ref_name }}
-          git merge origin/${{ github.ref_name }}
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.new-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
           if [[ ${{ inputs.environment }} == 'preprod' ]]; then
             if git rev-parse "${{ inputs.new-tag }}" >/dev/null 2>&1; then
