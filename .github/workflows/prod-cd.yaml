@@ -7,7 +7,7 @@ jobs:
   call-metrics-init:
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Init Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@v2
 
   call-get-tag:
     if: startsWith(github.head_ref || github.ref_name, 'main')
@@ -60,7 +60,7 @@ jobs:
     needs: call-get-tag
     if: startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Deploy Image Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v2
     with:
       link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
@@ -70,7 +70,7 @@ jobs:
     needs: call-cd-deploy
     if: startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != needs.call-get-tag.outputs.link-tag
     name: Call Trigger Post-Deploy Tests Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@v2
     with:
       link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
       current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
@@ -81,7 +81,7 @@ jobs:
     needs: call-trigger-tests
     if: failure() && startsWith(github.head_ref || github.ref_name, 'main')
     name: Call Rollback Deploy Image Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v2
     with:
       link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
@@ -93,7 +93,7 @@ jobs:
     needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ startsWith(github.head_ref || github.ref_name, 'main') }}
     name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v2
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Promote to Prod'
@@ -104,7 +104,7 @@ jobs:
     needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
     name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v2
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Promote to Prod'

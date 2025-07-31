@@ -7,17 +7,17 @@ jobs:
   call-metrics-init:
     if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Init Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@v2
 
   call-code-quality:
     if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Code Quality Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@v2
 
   call-build-docker:
     if: startsWith(github.head_ref || github.ref_name, 'feature/')
     name: Call Build Docker Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@v2
     with:
       push-image: ${{ fromJSON(vars.PUSH_FB_IMAGE || 'false') }}
     secrets: inherit
@@ -26,7 +26,7 @@ jobs:
     needs: [ call-build-docker, call-code-quality, call-metrics-init ]
     if: ${{ startsWith(github.head_ref || github.ref_name, 'feature/') }}
     name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v2
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Feature Branch CI'
@@ -37,7 +37,7 @@ jobs:
     needs: [ call-build-docker, call-code-quality, call-metrics-init ]
     if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'feature/') }}
     name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v2
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Feature Branch CI'
