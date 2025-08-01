@@ -64,7 +64,7 @@ jobs:
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
-      new-tag: ${{ needs.call-get-tag.outputs.new-tag }}
+      new-tag: ${{ needs.call-cd-deploy.outputs.new-tag }}
       current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
       environment: 'prod'
     secrets: inherit

@@ -58,7 +58,7 @@ jobs:
         run: |
           echo "Current version: ${{ steps.get-tag.outputs.current-tag }}"
           echo "New version: ${{ inputs.new-tag }}"
-          npm install semver
+          npm install semver || true
           is_valid=$(npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.new-tag }}")
       
           if [ -z "$is_valid" ]; then
