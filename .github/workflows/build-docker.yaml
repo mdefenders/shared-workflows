@@ -109,7 +109,7 @@ jobs:
           echo "Updating version.json with tag: $NEW_TAG, version: $VERSION, commit: ${GITHUB_SHA:0:7}"
           [ -s version.json ] || echo '{}' > version.json
           jq --arg version "$VERSION" --arg tag "$NEW_TAG" --arg commit "${GITHUB_SHA:0:7}" \
-            '.version = version | .commit = $commit | .tag = tag' version.json > tmp.json && mv tmp.json version.json          
+            '.version = $version | .commit = $commit | .tag = $tag' version.json > tmp.json && mv tmp.json version.json          
           
           echo "Updated version.json:"
           cat version.json
