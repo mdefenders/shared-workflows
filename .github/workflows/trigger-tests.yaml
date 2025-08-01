@@ -76,12 +76,14 @@ jobs:
       - name: Run tests
         run: |
           set -o pipefail
-          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
-          export SERVICE_URL
-          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
           echo "Running tests for ${GITHUB_REPOSITORY##*/} in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
             dev)
+              BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+              ENV_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
+              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+              export SERVICE_URL
+              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
               mkdir coverage
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Regression/Integration" >> $GITHUB_ENV
@@ -91,7 +93,7 @@ jobs:
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Integration" >> $GITHUB_ENV
               ;;
-            preprod)
+            preprod)         
               mkdir coverage
               npm run test:endtoend -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
@@ -101,6 +103,11 @@ jobs:
               npm run test:smoke -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
               ;;
+            *)
+              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+              export SERVICE_URL
+              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
+
           esac    
           echo "Tests executed successfully."
       - name: Print summary
