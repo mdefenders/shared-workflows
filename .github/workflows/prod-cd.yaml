@@ -14,7 +14,7 @@ jobs:
     name: Check Release Branch
     runs-on: ubuntu-latest
     outputs:
-      link-tag: ${{ steps.get-tag.outputs.link-tag }}
+      new-tag: ${{ steps.get-tag.outputs.new-tag }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -24,23 +24,15 @@ jobs:
       - name: Validate SemVer Format
         id: get-tag
         run: |
-          git fetch origin main --tags
-
-          LATEST_TAG=$(git tag -l | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
-
-          if [[ -z "$LATEST_TAG" ]]; then
-            echo "No SemVer tags found"
+          VERSION=$(jq -r 'select(.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .version' version.json)
+          if [[ -z "$VERSION" ]]; then
+            echo "No valid release name found in version.json, exiting"
             exit 1
-          fi
-          TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
-          if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
-            echo "Tag $LATEST_TAG is NOT from main branch"
-            exit 1
-          fi
-          echo "Latest SemVer tag: $LATEST_TAG"
-          echo "link-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "LINK_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
+          fi          
 
+          echo "Latest SemVer tag: $VERSION"
+          echo "new-tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "NEW_TAG=$VERSION" >> "$GITHUB_ENV"
 
       - name: Check if Docker image exists on DockerHub
         id: check-image
@@ -48,12 +40,12 @@ jobs:
         with:
           registry: docker.io
           repository: ${{ github.repository }}
-          tag: ${{ env.LINK_TAG }}
+          tag: ${{ env.NEW_TAG }}
 
       - name: Exit if image not found
         if: steps.check-image.outputs.tag == 'not found'
         run: |
-          echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found . Exiting."
+          echo "Docker image ${{ github.repository }}:${{ env.NEW_TAG }} not found . Exiting."
           exit 1
 
   call-cd-deploy:
@@ -62,17 +54,17 @@ jobs:
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v2
     with:
-      link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
+      new-tag: ${{ needs.call-get-tag.outputs.new-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
 
   call-trigger-tests:
     needs: call-cd-deploy
-    if: startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != needs.call-get-tag.outputs.link-tag
+    if: startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != needs.call-get-tag.outputs.new-tag
     name: Call Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@v2
     with:
-      link-tag: ${{ needs.call-get-tag.outputs.link-tag }}
+      new-tag: ${{ needs.call-cd-deploy.outputs.new-tag }}
       current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
       environment: 'prod'
     secrets: inherit
@@ -83,7 +75,7 @@ jobs:
     name: Call Rollback Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v2
     with:
-      link-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
+      new-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'prod'
       rollback: true

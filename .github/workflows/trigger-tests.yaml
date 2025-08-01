@@ -3,7 +3,7 @@ name: Trigger Post-Deploy Tests
 on:
   workflow_call:
     inputs:
-      link-tag:
+      new-tag:
         type: string
         required: true
       current-tag:
@@ -15,6 +15,8 @@ on:
     outputs:
       current-tag:
         value: ${{ inputs.current-tag }}
+      new-tag:
+        value: ${{ inputs.new-tag }}        
     secrets:
       CICD_SLACK_WEBHOOK:
         required: true
@@ -37,10 +39,10 @@ jobs:
           DEPLOY_FORCE_RUN_TESTS=${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
           K8S_NAMESPACE=${{ vars.K8S_NAMESPACE || 'default' }}
           APP_NAME=${GITHUB_REPOSITORY##*/}
-          echo "Waiting for $APP_NAME deployment to be available in environment: ${{ inputs.environment }} with $EXPECTED_REPLICAS replicas and tag ${{ inputs.link-tag }}"
+          echo "Waiting for $APP_NAME deployment to be available in environment: ${{ inputs.environment }} with $EXPECTED_REPLICAS replicas and tag ${{ inputs.new-tag }}"
           while true; do
-            AVAILABLE_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} -l tag=${{ inputs.link-tag }} | wc -l)
-            ORPHANED_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} | grep -v "${{ inputs.link-tag }}" | wc -l)
+            AVAILABLE_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} -l tag=${{ inputs.new-tag }} | wc -l)
+            ORPHANED_REPLICAS=$(kubectl get pods -n ${K8S_NAMESPACE} --show-labels --no-headers -l app=${APP_NAME} | grep -v "${{ inputs.new-tag }}" | wc -l)
             if [[ "$AVAILABLE_REPLICAS" -ge "$EXPECTED_REPLICAS" && "$ORPHANED_REPLICAS" == "0" ]]; then
               echo "Deployment is available with $AVAILABLE_REPLICAS replicas."
               break
@@ -74,12 +76,14 @@ jobs:
       - name: Run tests
         run: |
           set -o pipefail
-          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
-          export SERVICE_URL
-          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
           echo "Running tests for ${GITHUB_REPOSITORY##*/} in environment: ${{ inputs.environment }}"
           case ${{ inputs.environment }} in
             dev)
+              BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+              ENV_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr '/.' '-')
+              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${GITHUB_REPOSITORY##*/}-${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+              export SERVICE_URL
+              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
               mkdir coverage
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Regression/Integration" >> $GITHUB_ENV
@@ -88,17 +92,17 @@ jobs:
               mkdir coverage
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Integration" >> $GITHUB_ENV
-              ;;
-            preprod)
-              mkdir coverage
-              npm run test:endtoend -- --coverage | tee coverage/output.txt
-              echo "TITLE=Smoke" >> $GITHUB_ENV
-              ;;          
+              ;;  
             prod)
               mkdir coverage
               npm run test:smoke -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
               ;;
+            *)
+              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+              export SERVICE_URL
+              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
+
           esac    
           echo "Tests executed successfully."
       - name: Print summary
@@ -114,7 +118,7 @@ jobs:
           MESSAGE="${GITHUB_REPOSITORY##*/} has been successfully deployed to *${{ inputs.environment }}* environment.\n\
           Workflow Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\n\
           Service URL: $SERVICE_URL\n\
-          Tag: ${{ inputs.link-tag }}"         
+          Tag: ${{ inputs.new-tag }}"         
           
           curl -ks -X POST -H 'Content-type: application/json' \
           --data "{\"text\":\"$MESSAGE\"}"  ${{ secrets.CICD_SLACK_WEBHOOK }}

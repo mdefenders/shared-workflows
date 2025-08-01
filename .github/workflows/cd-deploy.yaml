@@ -3,7 +3,7 @@ name: Deploy Docker Image
 on:
   workflow_call:
     inputs:
-      link-tag:
+      new-tag:
         type: string
         required: true
       gitops-file:
@@ -15,9 +15,14 @@ on:
       rollback:
         type: boolean
         default: false
+      replicas:
+        type: number
+        default: 3
     outputs:
       current-tag:
         value: ${{ jobs.deploy-image.outputs.current-tag }}
+      new-tag:
+        value: ${{ inputs.new-tag }}
 
 jobs:
   deploy-image:
@@ -52,47 +57,50 @@ jobs:
         if: ${{ inputs.environment == 'prod' && inputs.rollback == false }}
         run: |
           echo "Current version: ${{ steps.get-tag.outputs.current-tag }}"
-          echo "New version: ${{ inputs.link-tag }}"
-          npm install semver
-          is_valid=$(npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.link-tag }}")
+          echo "New version: ${{ inputs.new-tag }}"
+          npm install semver || true
       
-          if [ -z "$is_valid" ]; then
-            echo "ERROR: New version ${{ inputs.link-tag }} is not greater or equal to current ${{ steps.get-tag.outputs.current-tag }}"
+          if ! npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.new-tag }}"; then
+            echo "ERROR: New version ${{ inputs.new-tag }} is not greater or equal to current ${{ steps.get-tag.outputs.current-tag }}"
             exit 1
           else
             echo "New version is valid (>= current)"
           fi
 
       - name: Update GitOps file and release tag
-        if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}
         run: |
-          if [[ -z "${{ inputs.link-tag }}" ]]; then
+          if [[ -z "${{ inputs.new-tag }}" ]]; then
             echo "No Tag provided. Exiting."
             exit 1
           fi
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Working on branch: $BRANCH_NAME"
+          
+          git pull origin "$BRANCH_NAME" || echo "No changes to pull"
+          git fetch --tags origin "$BRANCH_NAME"
+          git checkout "$BRANCH_NAME"
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
-          echo "tag: ${{ inputs.link-tag }}" >> "${{ inputs.gitops-file }}"          
+          echo "tag: ${{ inputs.new-tag }}" >> "${{ inputs.gitops-file }}"          
           echo "app: ${GITHUB_REPOSITORY##*/}" >> "${{ inputs.gitops-file }}"
+          echo "replicas: ${{ inputs.replicas }}" >> "${{ inputs.gitops-file }}"          
           git add "${{ inputs.gitops-file }}"
-          git fetch origin --tags ${{ github.ref_name }}
-          git merge origin/${{ github.ref_name }}
-          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
-          if [[ ${{ inputs.environment }} == 'preprod' ]]; then
-            if git rev-parse "${{ inputs.link-tag }}" >/dev/null 2>&1; then
-              echo "Tag '${{ inputs.link-tag }}' already exists. Exiting."
+          git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.new-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
+          if [[ ${{ inputs.environment }} == 'prod' ]]; then
+            if git rev-parse "${{ inputs.new-tag }}" >/dev/null 2>&1; then
+              echo "Tag '${{ inputs.new-tag }}' already exists. Exiting."
               exit 1
             fi
-            git tag "${{ inputs.link-tag }}"
+            git tag "${{ inputs.new-tag }}"
             git push || echo "No changes to push"
-            git push origin "${{ inputs.link-tag }}" || echo "No tags to push tag"          
+            git push origin "${{ inputs.new-tag }}" || echo "No tags to push tag"          
           fi
-          git push || echo "No changes to push"
+          git push origin "$BRANCH_NAME" || echo "No changes to push"
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Print summary
-        if: ${{ inputs.link-tag != steps.get-tag.outputs.current-tag }}
+        if: ${{ inputs.new-tag != steps.get-tag.outputs.current-tag }}
         run: |
           echo '### CD Action:' >> $GITHUB_STEP_SUMMARY
-            echo "Pushed image $GITHUB_REPOSITORY:${{ inputs.link-tag }} to ${{ inputs.environment }}" GitOps>> $GITHUB_STEP_SUMMARY
+            echo "Pushed image $GITHUB_REPOSITORY:${{ inputs.new-tag }} to ${{ inputs.environment }}" GitOps>> $GITHUB_STEP_SUMMARY
             echo "[View Commit](https://github.com/$GITHUB_REPOSITORY/commit/$COMMIT_SHA)" >> $GITHUB_STEP_SUMMARY
