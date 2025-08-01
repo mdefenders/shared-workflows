@@ -74,8 +74,11 @@ jobs:
             echo "No Tag provided. Exiting."
             exit 1
           fi
-          git pull origin ${{ github.ref_name }} || echo "No changes to pull"
-          git fetch --tags origin ${{ github.ref_name }}
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Working on branch: $BRANCH_NAME"
+          
+          git pull origin "$BRANCH_NAME" || echo "No changes to pull"
+          git fetch --tags origin "$BRANCH_NAME"
           git merge origin/${{ github.ref_name }}          
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
@@ -93,7 +96,7 @@ jobs:
             git push || echo "No changes to push"
             git push origin "${{ inputs.new-tag }}" || echo "No tags to push tag"          
           fi
-          git push || echo "No changes to push"
+          git push origin "$BRANCH_NAME" || echo "No changes to push"
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Print summary
