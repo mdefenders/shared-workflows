@@ -105,9 +105,9 @@ jobs:
         if: ${{ inputs.push-image }}
         run: |
           set -o pipefail
-          echo "Updating version.json with link tag: $NEW_TAG"
-          [ -s version.json ] || echo '{}' > version.json
           VERSION="${VERSION:-SNAPSHOT}"
+          echo "Updating version.json with tag: $NEW_TAG, version: $VERSION, commit: ${GITHUB_SHA:0:7}"
+          [ -s version.json ] || echo '{}' > version.json
           jq --arg version "$VERSION" --arg tag "$NEW_TAG" --arg commit "${GITHUB_SHA:0:7}" \
             '.version = version | .commit = $commit | .tag = tag' version.json > tmp.json && mv tmp.json version.json          
           
