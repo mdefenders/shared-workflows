@@ -35,6 +35,8 @@ jobs:
 
       - name: Check out the repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get Tag
         id: get-tag
@@ -109,15 +111,19 @@ jobs:
           cat version.json
 
       - name: Commit version.json
-        if: ${{ github.event_name == 'push' && (inputs.push-image && inputs.commit-version || env.RELEASE_NAME) }}
+        if: ${{ env.RELEASE_NAME }}
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"          
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Working on branch: $BRANCH_NAME"
+          git pull origin "$BRANCH_NAME" || echo "No changes to pull"
+          git checkout "$BRANCH_NAME"
+
           git add version.json
-          git fetch origin ${{ github.ref_name }}
-          git merge origin/${{ github.ref_name }}
+
           git commit -m "github-actions[bot] version.json updated with image version $NEW_TAG" || echo "No changes to commit"
-          git push
+          git push origin "$BRANCH_NAME" || echo "No changes to push"
 
       - name: Build and push (optional) Docker image
         id: build-and-push
