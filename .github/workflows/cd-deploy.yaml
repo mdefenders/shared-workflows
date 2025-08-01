@@ -79,6 +79,7 @@ jobs:
           
           git pull origin "$BRANCH_NAME" || echo "No changes to pull"
           git fetch --tags origin "$BRANCH_NAME"
+          git checkout "$BRANCH_NAME"
           echo "Updating GitOps file: ${{ inputs.gitops-file }}"
           echo "image: $GITHUB_REPOSITORY" > "${{ inputs.gitops-file }}"
           echo "tag: ${{ inputs.new-tag }}" >> "${{ inputs.gitops-file }}"          
