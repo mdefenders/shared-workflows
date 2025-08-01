@@ -93,7 +93,7 @@ jobs:
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Integration" >> $GITHUB_ENV
               ;;
-            preprod)         
+            preprod)
               mkdir coverage
               npm run test:endtoend -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
