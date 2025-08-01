@@ -86,7 +86,7 @@ jobs:
           echo "replicas: ${{ inputs.replicas }}" >> "${{ inputs.gitops-file }}"          
           git add "${{ inputs.gitops-file }}"
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.new-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
-          if [[ ${{ inputs.environment }} == 'preprod' ]]; then
+          if [[ ${{ inputs.environment }} == 'prod' ]]; then
             if git rev-parse "${{ inputs.new-tag }}" >/dev/null 2>&1; then
               echo "Tag '${{ inputs.new-tag }}' already exists. Exiting."
               exit 1
