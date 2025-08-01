@@ -56,17 +56,17 @@ jobs:
           case "$BRANCH_NAME" in
             main)
               echo "Main branch found"
-              RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
-              if [[ -z "$RELEASE_NAME" ]]; then
+              VERSION=$(jq -r 'select(.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .version' version.json)
+              if [[ -z "$VERSION" ]]; then
                 echo "No valid release name found in version.json, exiting"
                 exit 1
               fi
               # Increment patch version
-              IFS='.' read -r major minor patch <<< "$RELEASE_NAME"
+              IFS='.' read -r major minor patch <<< "$VERSION"
               PATCH_NEXT=$((patch + 1))
               INCREMENTED_VERSION="$major.$minor.$PATCH_NEXT"
               TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$INCREMENTED_VERSION"
-              echo "RELEASE_NAME=$INCREMENTED_VERSION" >> $GITHUB_ENV
+              echo "VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
               NEW_TAG="$INCREMENTED_VERSION"
               ;;
 
@@ -107,15 +107,15 @@ jobs:
           set -o pipefail
           echo "Updating version.json with link tag: $NEW_TAG"
           [ -s version.json ] || echo '{}' > version.json
-          RELEASE_NAME=${{ env.RELEASE_NAME || 'SNAPSHOT' }}
-          jq --arg release $RELEASE_NAME --arg tag ${{ env.NEW_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
-            '.version = $tag | .commit = $commit | .release = $release' version.json > tmp.json && mv tmp.json version.json          
+          VERSION=${{ env.VERSION || 'SNAPSHOT' }}
+          jq --arg version $VERSION --arg tag ${{ env.NEW_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
+            '.version = version | .commit = $commit | .tag = tag' version.json > tmp.json && mv tmp.json version.json          
           
           echo "Updated version.json:"
           cat version.json
 
       - name: Commit version.json
-        if: ${{ env.RELEASE_NAME }}
+        if: ${{ env.VERSION }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
