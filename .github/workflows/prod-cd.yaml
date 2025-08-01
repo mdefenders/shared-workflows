@@ -24,23 +24,15 @@ jobs:
       - name: Validate SemVer Format
         id: get-tag
         run: |
-          git fetch origin main --tags
-
-          LATEST_TAG=$(git tag -l | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
-
-          if [[ -z "$LATEST_TAG" ]]; then
-            echo "No SemVer tags found"
+          RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
+          if [[ -z "$RELEASE_NAME" ]]; then
+            echo "No valid release name found in version.json, exiting"
             exit 1
-          fi
-          TAG_COMMIT=$(git rev-list -n 1 "$LATEST_TAG")
-          if ! git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
-            echo "Tag $LATEST_TAG is NOT from main branch"
-            exit 1
-          fi
-          echo "Latest SemVer tag: $LATEST_TAG"
-          echo "new-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "LINK_TAG=$LATEST_TAG" >> "$GITHUB_ENV"
+          fi          
 
+          echo "Latest SemVer tag: $RELEASE_NAME"
+          echo "new-tag=$RELEASE_NAME" >> $GITHUB_OUTPUT
+          echo "NEW_TAG=$RELEASE_NAME" >> "$GITHUB_ENV"
 
       - name: Check if Docker image exists on DockerHub
         id: check-image
@@ -48,12 +40,12 @@ jobs:
         with:
           registry: docker.io
           repository: ${{ github.repository }}
-          tag: ${{ env.LINK_TAG }}
+          tag: ${{ env.NEW_TAG }}
 
       - name: Exit if image not found
         if: steps.check-image.outputs.tag == 'not found'
         run: |
-          echo "Docker image ${{ github.repository }}:${{ env.LINK_TAG }} not found . Exiting."
+          echo "Docker image ${{ github.repository }}:${{ env.NEW_TAG }} not found . Exiting."
           exit 1
 
   call-cd-deploy:
