@@ -81,7 +81,7 @@ jobs:
             dev)
               BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
               ENV_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-')
-              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${GITHUB_REPOSITORY##*/}-${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
               export SERVICE_URL
               echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
               mkdir coverage
