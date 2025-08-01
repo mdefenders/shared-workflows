@@ -49,49 +49,38 @@ jobs:
 
           case "$BRANCH_NAME" in
             main)
-              echo "Main tag/branch found"
+              echo "Main branch found"
               RELEASE_NAME=$(jq -r 'select(.release | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .release' version.json)
               if [[ -z "$RELEASE_NAME" ]]; then
                 echo "No valid release name found in version.json, exiting"
                 exit 1
               fi
-              TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$RELEASE_NAME"
-              echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
-              LINK_TAG="$RELEASE_NAME"
+              # Increment patch version
+              IFS='.' read -r major minor patch <<< "$RELEASE_NAME"
+              PATCH_NEXT=$((patch + 1))
+              INCREMENTED_VERSION="$major.$minor.$PATCH_NEXT"
+              TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:INCREMENTED_VERSION"
+              echo "RELEASE_NAME=INCREMENTED_VERSION" >> $GITHUB_ENV
+              NEW_TAG="INCREMENTED_VERSION"
               ;;
 
             feature/*)
               echo "Feature branch found"
               FEATURE_NAME="${BRANCH_NAME#feature/}"
               TAGS="$GITHUB_REPOSITORY:$FEATURE_NAME-latest,$GITHUB_REPOSITORY:$FEATURE_NAME-$SHORT_SHA"
-              LINK_TAG="$FEATURE_NAME-$SHORT_SHA"
-              ;;
-
-            release/*)
-              echo "Release branch found"
-              RELEASE_NAME="${BRANCH_NAME#release/}"
-              echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
-              TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
-              LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
-              ;;
-            hotfix/*)
-              echo "Hotfix branch found"
-              RELEASE_NAME="${BRANCH_NAME#hotfix/}"
-              echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
-              TAGS="$GITHUB_REPOSITORY:$RELEASE_NAME-rc-latest,$GITHUB_REPOSITORY:$RELEASE_NAME-rc-$SHORT_SHA"
-              LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
-              ;;          
+              NEW_TAG="$FEATURE_NAME-$SHORT_SHA"
+              ;;         
 
             *)
               echo "Unknown branch: using SHA only"
               TAGS="$GITHUB_REPOSITORY:$SHORT_SHA"
-              LINK_TAG="$SHORT_SHA"
+              NEW_TAG="$SHORT_SHA"
               ;;
           esac
 
           echo "TAGS=$TAGS" >> "$GITHUB_ENV"
-          echo "LINK_TAG=$LINK_TAG" >> "$GITHUB_ENV"
-          echo "new-tag=$LINK_TAG" >> "$GITHUB_OUTPUT"
+          echo "NEW_TAG=$NEW_TAG" >> "$GITHUB_ENV"
+          echo "new-tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3.0.0
@@ -110,10 +99,10 @@ jobs:
         if: ${{ inputs.push-image }}
         run: |
           set -o pipefail
-          echo "Updating version.json with link tag: $LINK_TAG"
+          echo "Updating version.json with link tag: $NEW_TAG"
           [ -s version.json ] || echo '{}' > version.json
           RELEASE_NAME=${{ env.RELEASE_NAME || 'SNAPSHOT' }}
-          jq --arg release $RELEASE_NAME --arg tag ${{ env.LINK_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
+          jq --arg release $RELEASE_NAME --arg tag ${{ env.NEW_TAG }} --arg commit "${GITHUB_SHA:0:7}" \
             '.version = $tag | .commit = $commit | .release = $release' version.json > tmp.json && mv tmp.json version.json          
           
           echo "Updated version.json:"
@@ -127,7 +116,7 @@ jobs:
           git add version.json
           git fetch origin ${{ github.ref_name }}
           git merge origin/${{ github.ref_name }}
-          git commit -m "github-actions[bot] version.json updated with image version $LINK_TAG" || echo "No changes to commit"
+          git commit -m "github-actions[bot] version.json updated with image version $NEW_TAG" || echo "No changes to commit"
           git push
 
       - name: Build and push (optional) Docker image
@@ -147,4 +136,4 @@ jobs:
           echo '### The image repo tags:' >> $GITHUB_STEP_SUMMARY
           echo '['${{ env.DOCKERHUB_REPO }}'](https://hub.docker.com/repository/docker/'${{ env.DOCKERHUB_REPO }}'/tags/)' >> $GITHUB_STEP_SUMMARY
           echo '### The built image content:' >> $GITHUB_STEP_SUMMARY
-          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.LINK_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.LINK_TAG }}'/images/'${{ steps.build-and-push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
+          echo '['${{ env.DOCKERHUB_REPO }}':'${{ env.NEW_TAG }}'](https://hub.docker.com/layers/'${{ env.DOCKERHUB_REPO }}'/'${{ env.NEW_TAG }}'/images/'${{ steps.build-and-push.outputs.digest }}')' >> $GITHUB_STEP_SUMMARY
