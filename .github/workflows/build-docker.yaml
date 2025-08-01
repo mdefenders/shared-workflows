@@ -42,8 +42,12 @@ jobs:
         id: get-tag
         run: |
           echo "DOCKERHUB_REPO=$GITHUB_REPOSITORY" >> "$GITHUB_ENV"
-          FULL_SHA=${{ github.event.pull_request.head.sha || github.sha }}
-          SHORT_SHA="${FULL_SHA:0:7}"
+              if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+                SHORT_SHA=pr-${{ github.event.pull_request.number }}
+              else
+                FULL_SHA=${{ github.sha }}
+                SHORT_SHA="${FULL_SHA:0:7}"
+              fi
 
           # Normalize the branch name for both push and pull_request
           BRANCH_NAME="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
