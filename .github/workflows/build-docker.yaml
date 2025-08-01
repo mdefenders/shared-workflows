@@ -39,8 +39,7 @@ jobs:
       - name: Get Tag
         id: get-tag
         run: |
-          export DOCKERHUB_REPO=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
-          echo "DOCKERHUB_REPO=${DOCKERHUB_REPO}" >> "$GITHUB_ENV"
+          echo "DOCKERHUB_REPO=$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')" >> "$GITHUB_ENV"
           FULL_SHA=${{ github.event.pull_request.head.sha || github.sha }}
           SHORT_SHA="${FULL_SHA:0:7}"
 
@@ -56,7 +55,7 @@ jobs:
                 echo "No valid release name found in version.json, exiting"
                 exit 1
               fi
-              TAGS="${DOCKERHUB_REPO}':latest,${DOCKERHUB_REPO}':$RELEASE_NAME"
+              TAGS="${{ env.DOCKERHUB_REPO }}':latest,${{ env.DOCKERHUB_REPO }}':$RELEASE_NAME"
               echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
               LINK_TAG="$RELEASE_NAME"
               ;;
@@ -64,7 +63,7 @@ jobs:
             feature/*)
               echo "Feature branch found"
               FEATURE_NAME="${BRANCH_NAME#feature/}"
-              TAGS="${DOCKERHUB_REPO}':$FEATURE_NAME-latest,${DOCKERHUB_REPO}':$FEATURE_NAME-$SHORT_SHA"
+              TAGS="${{ env.DOCKERHUB_REPO }}':$FEATURE_NAME-latest,${{ env.DOCKERHUB_REPO }}':$FEATURE_NAME-$SHORT_SHA"
               LINK_TAG="$FEATURE_NAME-$SHORT_SHA"
               ;;
 
@@ -72,20 +71,20 @@ jobs:
               echo "Release branch found"
               RELEASE_NAME="${BRANCH_NAME#release/}"
               echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
-              TAGS="${DOCKERHUB_REPO}':$RELEASE_NAME-rc-latest,${DOCKERHUB_REPO}}':$RELEASE_NAME-rc-$SHORT_SHA"
+              TAGS="${{ env.DOCKERHUB_REPO }}':$RELEASE_NAME-rc-latest,${{ env.DOCKERHUB_REPO }}':$RELEASE_NAME-rc-$SHORT_SHA"
               LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
               ;;
             hotfix/*)
               echo "Hotfix branch found"
               RELEASE_NAME="${BRANCH_NAME#hotfix/}"
               echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
-              TAGS="${DOCKERHUB_REPO}':$RELEASE_NAME-rc-latest,${DOCKERHUB_REPO}':$RELEASE_NAME-rc-$SHORT_SHA"
+              TAGS="${{ env.DOCKERHUB_REPO }}':$RELEASE_NAME-rc-latest,${{ env.DOCKERHUB_REPO }}':$RELEASE_NAME-rc-$SHORT_SHA"
               LINK_TAG="$RELEASE_NAME-rc-$SHORT_SHA"
               ;;          
 
             *)
               echo "Unknown branch: using SHA only"
-              TAGS="${DOCKERHUB_REPO}':$SHORT_SHA"
+              TAGS="${{ env.DOCKERHUB_REPO }}':$SHORT_SHA"
               LINK_TAG="$SHORT_SHA"
               ;;
           esac
