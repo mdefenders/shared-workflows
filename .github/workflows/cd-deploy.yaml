@@ -59,9 +59,8 @@ jobs:
           echo "Current version: ${{ steps.get-tag.outputs.current-tag }}"
           echo "New version: ${{ inputs.new-tag }}"
           npm install semver || true
-          is_valid=$(npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.new-tag }}")
       
-          if [ -z "$is_valid" ]; then
+          if ! npx semver -r ">=$(echo "${{ steps.get-tag.outputs.current-tag }}")" "${{ inputs.new-tag }}"; then
             echo "ERROR: New version ${{ inputs.new-tag }} is not greater or equal to current ${{ steps.get-tag.outputs.current-tag }}"
             exit 1
           else
