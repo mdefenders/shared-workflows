@@ -17,9 +17,6 @@ jobs:
     outputs:
       current-tag: ${{ steps.get-image.outputs.current-tag }}
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-
       - name: Read Image from YAML file
         id: get-image
         run: |
