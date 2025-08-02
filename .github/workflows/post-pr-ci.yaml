@@ -14,31 +14,31 @@ jobs:
     name: Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/get-image.yaml@dev
     with:
-      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
+      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
     secrets: inherit
 
   call-scan-docker:
-    needs: call-build-docker
+    needs: call-get-image
     if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
-      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
+      new-tag: ${{ needs.call-get-image.outputs.current-tag }}
     secrets: inherit
 
   call-trigger-tests:
-    needs: call-cd-deploy
+    needs: call-scan-docker
     if: startsWith(github.head_ref , 'feature/') && github.ref_type == 'branch'
     name: Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
-      new-tag: ${{ needs.call-cd-deploy.outputs.new-tag }}
-      current-tag: ${{ needs.call-cd-deplo.outputs.current-tag }}
+      new-tag: ${{ needs.call-get-image.outputs.current-tag }}
+      current-tag: ${{ needs.call-get-image.outputs.current-tag }}
       environment: 'dev'
     secrets: inherit
 
   call-cd-undeploy:
-    needs: [call-cd-deploy, call-trigger-tests]
+    needs: call-trigger-tests
     if: always() && startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
