@@ -7,18 +7,19 @@ on:
         type: string
         required: true
     outputs:
-      current-tag:
-        value: ${{ jobs.get-image.outputs.current-tag }}
+      current-image:
+        value: ${{ jobs.get-image.outputs.current-image }}
 
 jobs:
   get-image:
     name: Read Image from YAML file
     runs-on: ubuntu-latest
     outputs:
-      current-tag: ${{ steps.get-image.outputs.current-tag }}
+      current-tag: ${{ steps.get-image.outputs.current-image }}
     steps:
       - name: Read Image from YAML file
         id: get-image
         run: |
           TAG=$(cat "${{ inputs.gitops-file }}" | grep ^tag: | cut -f2 -d' ')
-          echo "current-tag=$TAG" >> $GITHUB_OUTPUT
+          IMAGE=$(cat "${{ inputs.gitops-file }}" | grep ^image: | cut -f2 -d' ')          
+          echo "current-image=$IMAGE:$TAG" >> $GITHUB_OUTPUT
