@@ -1,4 +1,4 @@
-name: Call Code Quality Workflow
+name: Code Quality Workflow
 
 on:
   workflow_call:
