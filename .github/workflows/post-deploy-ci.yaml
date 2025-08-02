@@ -5,12 +5,12 @@ on:
 
 jobs:
   call-metrics-init:
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Init Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
 
   call-get-image:
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/get-image.yaml@dev
     with:
@@ -19,7 +19,7 @@ jobs:
 
   call-scan-docker:
     needs: call-get-image
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
@@ -28,7 +28,7 @@ jobs:
 
   call-trigger-tests:
     needs: call-scan-docker
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref , 'feature/') && github.ref_type == 'branch'
     name: Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
@@ -39,7 +39,7 @@ jobs:
 
   call-metrics-push-success:
     needs: [call-scan-docker, call-trigger-tests, call-metrics-init ]
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
@@ -50,7 +50,7 @@ jobs:
 
   call-metrics-push-failure:
     needs: [call-scan-docker, call-trigger-tests, call-metrics-init ]
-    if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: failure() && startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
