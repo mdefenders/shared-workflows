@@ -1,4 +1,4 @@
-name: Feature Branch CI
+name: Post Deploy CI
 
 on:
   workflow_call:
@@ -44,7 +44,7 @@ jobs:
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-      workflow-name: 'Post PR CI'
+      workflow-name: 'Post Deploy CI'
       workflow-success: 1
     secrets: inherit
 
@@ -55,5 +55,5 @@ jobs:
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
-      workflow-name: 'Post PR CI'
+      workflow-name: 'Post Deploy CI'
     secrets: inherit
