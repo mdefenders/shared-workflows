@@ -34,7 +34,7 @@ jobs:
 
   call-cd-deploy:
     needs: call-build-docker
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
