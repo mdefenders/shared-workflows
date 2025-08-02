@@ -56,7 +56,7 @@ jobs:
 
   call-cd-undeploy:
     needs: [call-cd-deploy, call-trigger-tests]
-    if: always() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: always() && startsWith(github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
