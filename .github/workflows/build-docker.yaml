@@ -65,7 +65,7 @@ jobs:
               IFS='.' read -r major minor patch <<< "$VERSION"
               PATCH_NEXT=$((patch + 1))
               INCREMENTED_VERSION="$major.$minor.$PATCH_NEXT"
-              TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$INCREMENTED_VERSION"
+              TAGS="$GITHUB_REPOSITORY:latest,$GITHUB_REPOSITORY:$INCREMENTED_VERSION,$GITHUB_REPOSITORY:$SHORT_SHA"
               echo "VERSION=$INCREMENTED_VERSION" >> $GITHUB_ENV
               NEW_TAG="$INCREMENTED_VERSION"
               ;;
