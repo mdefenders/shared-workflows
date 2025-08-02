@@ -79,7 +79,7 @@ jobs:
           echo "Running tests for ${GITHUB_REPOSITORY##*/} in environment: ${{ inputs.environment }}"
           if [[ ${{ inputs.environment }} == "dev" ]]; then
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-            ENV_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr '/.' '-')
+            ENV_NAME=$(echo "${GITHUB_REPOSITORY##*/}-$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr '/.' '-')
           else
             ENV_NAME=${{ inputs.environment }}
           fi
@@ -104,7 +104,7 @@ jobs:
               ;;
           esac
           
-          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${GITHUB_REPOSITORY##*/}-${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
           export SERVICE_URL
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
           echo "Tests executed successfully."
