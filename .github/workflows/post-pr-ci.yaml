@@ -38,7 +38,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-success:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [call-scan-docker, call-trigger-tests, call-metrics-init ]
     if: startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -49,7 +49,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [call-scan-docker, call-trigger-tests, call-metrics-init ]
     if: failure() && startsWith(github.head_ref, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
