@@ -102,10 +102,11 @@ jobs:
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Regression/Integration" >> $GITHUB_ENV
               ;;
+          esac
+          
           SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${GITHUB_REPOSITORY##*/}-${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
           export SERVICE_URL
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
-          esac    
           echo "Tests executed successfully."
 
       - name: Print summary
