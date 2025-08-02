@@ -1,0 +1,25 @@
+name: GetDeployed Image
+
+on:
+  workflow_call:
+    inputs:
+      gitops-file:
+        type: string
+        required: true
+    outputs:
+      current-image:
+        value: ${{ jobs.get-image.outputs.current-image }}
+
+jobs:
+  get-image:
+    name: Read Image from YAML file
+    runs-on: ubuntu-latest
+    outputs:
+      current-tag: ${{ steps.get-image.outputs.current-image }}
+    steps:
+      - name: Read Image from YAML file
+        id: get-image
+        run: |
+          TAG=$(cat "${{ inputs.gitops-file }}" | grep ^tag: | cut -f2 -d' ')
+          IMAGE=$(cat "${{ inputs.gitops-file }}" | grep ^image: | cut -f2 -d' ')          
+          echo "current-image=$IMAGE:$TAG" >> $GITHUB_OUTPUT
