@@ -43,9 +43,30 @@ jobs:
       environment: 'dev'
       replicas: ${{ fromJSON(vars.DEV_TEST_REPLICAS || '3') }}
 
+  call-trigger-tests:
+    needs: call-cd-deploy
+    if: startsWith(github.ref_name, 'feature/') && github.ref_type == 'branch'
+    name: Trigger Post-Deploy Tests Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
+    with:
+      new-tag: ${{ needs.call-cd-deploy.outputs.new-tag }}
+      current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
+      environment: 'dev'
+    secrets: inherit
+
+  call-cd-undeploy:
+    needs: [call-cd-deploy, call-trigger-tests]
+    if: always() && startsWith(github.ref_name, 'feature/') && github.ref_type == 'branch'
+    name: Deploy Image Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
+    with:
+      new-tag: ${{ needs.call-trigger-tests.outputs.new-tag }}
+      gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
+      environment: 'dev'
+      replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
 
   call-metrics-push-success:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -56,7 +77,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
     if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
