@@ -45,7 +45,7 @@ jobs:
 
   call-trigger-tests:
     needs: call-cd-deploy
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Trigger Post-Deploy Tests Workflow
     uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
