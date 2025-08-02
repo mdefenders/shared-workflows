@@ -12,6 +12,9 @@ on:
       environment:
         type: string
         required: true
+      tag-release:
+        type: boolean
+        default: false
       rollback:
         type: boolean
         default: false
@@ -86,14 +89,14 @@ jobs:
           echo "replicas: ${{ inputs.replicas }}" >> "${{ inputs.gitops-file }}"          
           git add "${{ inputs.gitops-file }}"
           git commit -m "github-actions[bot] deployed image $GITHUB_REPOSITORY:${{ inputs.new-tag }} to ${{ inputs.environment }}" || echo "No changes to commit"
-          if [[ ${{ inputs.environment }} == 'prod' ]]; then
+          if [[ ${{ inputs.tag-release }} == 'true' ]]; then
             if git rev-parse "${{ inputs.new-tag }}" >/dev/null 2>&1; then
-              echo "Tag '${{ inputs.new-tag }}' already exists. Exiting."
-              exit 1
-            fi
-            git tag "${{ inputs.new-tag }}"
-            git push || echo "No changes to push"
-            git push origin "${{ inputs.new-tag }}" || echo "No tags to push tag"          
+              echo "Tag '${{ inputs.new-tag }}' already exists."
+            else
+              git tag "${{ inputs.new-tag }}"
+              git push || echo "No changes to push"
+              git push origin "${{ inputs.new-tag }}" || echo "No tags to push tag"            
+            fi        
           fi
           git push origin "$BRANCH_NAME" || echo "No changes to push"
           echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV

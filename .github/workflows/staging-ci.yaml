@@ -56,13 +56,14 @@ jobs:
 
   call-cd-undeploy:
     needs: [call-cd-deploy, call-trigger-tests]
-    if: always() && startsWith(github.head_ref || github.ref_name, 'main') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref || github.ref_name, 'main') && github.ref_type == 'branch'
     name: Call Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
       new-tag: ${{ needs.call-trigger-tests.outputs.new-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/staging/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'staging'
+      tag-release: true
       replicas: ${{ fromJSON(vars.STAGING_REPLICAS || '0') }}
 
   call-metrics-push-success:
