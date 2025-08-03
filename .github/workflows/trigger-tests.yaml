@@ -77,34 +77,38 @@ jobs:
         run: |
           set -o pipefail
           echo "Running tests for ${GITHUB_REPOSITORY##*/} in environment: ${{ inputs.environment }}"
+          if [[ ${{ inputs.environment }} == "dev" ]]; then
+            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            ENV_NAME=$(echo "${GITHUB_REPOSITORY##*/}-$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr '/.' '-')
+          else
+            ENV_NAME=${{ inputs.environment }}
+          fi
+          mkdir coverage
+
           case ${{ inputs.environment }} in
             dev)
-              BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-              ENV_NAME=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | tr '/' '-' | tr '/.' '-')
-              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${GITHUB_REPOSITORY##*/}-${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
-              export SERVICE_URL
-              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV
-              mkdir coverage
               npm run test:integration -- --coverage | tee coverage/output.txt
               echo "TITLE=Regression/Integration" >> $GITHUB_ENV
               ;;
             staging)
-              mkdir coverage
-              npm run test:integration -- --coverage | tee coverage/output.txt
-              echo "TITLE=Integration" >> $GITHUB_ENV
+              npm run test:endtoend -- --coverage | tee coverage/output.txt
+              echo "TITLE=End-to-End" >> $GITHUB_ENV
               ;;  
             prod)
-              mkdir coverage
               npm run test:smoke -- --coverage | tee coverage/output.txt
               echo "TITLE=Smoke" >> $GITHUB_ENV
               ;;
             *)
-              SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${{ inputs.environment }}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
-              export SERVICE_URL
-              echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
-
-          esac    
+              npm run test:integration -- --coverage | tee coverage/output.txt
+              echo "TITLE=Regression/Integration" >> $GITHUB_ENV
+              ;;
+          esac
+          
+          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.svc.cluster.local:${{ vars.SERVICE_PORT || '3000' }}
+          export SERVICE_URL
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
           echo "Tests executed successfully."
+
       - name: Print summary
         run: |
           echo "### Service ${SERVICE_URL} ${TITLE} test report:" >> $GITHUB_STEP_SUMMARY

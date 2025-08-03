@@ -6,8 +6,8 @@ on:
 jobs:
   call-metrics-init:
     if: startsWith(github.head_ref || github.ref_name, 'main')
-    name: Call Init Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@v4
+    name: Init Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
 
   call-get-tag:
     if: startsWith(github.head_ref || github.ref_name, 'main')
@@ -20,16 +20,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
-      - name: Validate SemVer Format
+      - name: Validate Staging Passed and SemVer Format
         id: get-tag
         run: |
           VERSION=$(jq -r 'select(.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | .version' version.json)
           if [[ -z "$VERSION" ]]; then
             echo "No valid release name found in version.json, exiting"
             exit 1
-          fi          
-
+          fi
+          
+          if [[ -z "$(git tag --list "$VERSION")" ]]; then
+            echo "Git tag $VERSION does not exist. Image hasn't passed integration tests on Staging, exiting"
+            exit 1
+          else
+            echo "Git tag $VERSION exists"
+          fi
+          
           echo "Latest SemVer tag: $VERSION"
           echo "new-tag=$VERSION" >> $GITHUB_OUTPUT
           echo "NEW_TAG=$VERSION" >> "$GITHUB_ENV"
@@ -51,8 +59,8 @@ jobs:
   call-cd-deploy:
     needs: call-get-tag
     if: startsWith(github.head_ref || github.ref_name, 'main')
-    name: Call Deploy Image Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v4
+    name: Deploy Image Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
       new-tag: ${{ needs.call-get-tag.outputs.new-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
@@ -61,8 +69,8 @@ jobs:
   call-trigger-tests:
     needs: call-cd-deploy
     if: startsWith(github.head_ref || github.ref_name, 'main') && needs.call-cd-deploy.outputs.current-tag != needs.call-get-tag.outputs.new-tag
-    name: Call Trigger Post-Deploy Tests Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@v4
+    name: Trigger Post-Deploy Tests Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/trigger-tests.yaml@dev
     with:
       new-tag: ${{ needs.call-cd-deploy.outputs.new-tag }}
       current-tag: ${{ needs.call-cd-deploy.outputs.current-tag }}
@@ -72,8 +80,8 @@ jobs:
   rollback-cd-deploy:
     needs: call-trigger-tests
     if: failure() && startsWith(github.head_ref || github.ref_name, 'main')
-    name: Call Rollback Deploy Image Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@v4
+    name: Rollback Deploy Image Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
       new-tag: ${{ needs.call-trigger-tests.outputs.current-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/prod/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
@@ -84,8 +92,8 @@ jobs:
   call-metrics-push-success:
     needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ startsWith(github.head_ref || github.ref_name, 'main') }}
-    name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v4
+    name: Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Promote to Prod'
@@ -95,8 +103,8 @@ jobs:
   call-metrics-push-failure:
     needs: [ call-get-tag, call-cd-deploy, call-trigger-tests, call-metrics-init ]
     if: ${{ failure() && startsWith(github.head_ref || github.ref_name, 'main') }}
-    name: Call Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@v4
+    name: Push Metrics Workflow
+    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
     with:
       start-time: ${{ needs.call-metrics-init.outputs.start-time }}
       workflow-name: 'Promote to Prod'
