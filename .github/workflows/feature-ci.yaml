@@ -12,6 +12,7 @@ jobs:
   action-based-ci:
     needs: call-metrics-init
     name: Action-Based CI Workflow
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
