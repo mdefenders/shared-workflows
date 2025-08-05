@@ -9,13 +9,28 @@ jobs:
     name: Init Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
 
-  call-code-quality:
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
-    name: Code Quality Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/code-quality.yaml@dev
+  action-based-ci:
+    needs: call-metrics-init
+    name: Action-Based CI Workflow
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Run Action-Based CI
+        uses: mdefenders-actions/ci-code-quality@dev
+        with:
+          min-coverage: ${{ vars.MIN_COVERAGE || '65' }}
+
+    secrets: inherit
 
   call-build-docker:
-    needs: call-code-quality
+    needs: action-based-ci
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Build Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
@@ -55,7 +70,7 @@ jobs:
     secrets: inherit
 
   call-cd-undeploy:
-    needs: [call-cd-deploy, call-trigger-tests]
+    needs: [ call-cd-deploy, call-trigger-tests ]
     if: always() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
@@ -66,7 +81,7 @@ jobs:
       replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
 
   call-metrics-push-success:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -77,7 +92,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, call-code-quality, call-metrics-init ]
+    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
