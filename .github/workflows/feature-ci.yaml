@@ -28,10 +28,10 @@ jobs:
         id: npm-ci
         run: npm ci
 
-      - name: Run Action-Based CI
+      - name: Run Unit Tests
         uses: mdefenders-actions/ci-code-quality@dev
         with:
-          minCoverage: ${{ vars.MIN_COVERAGE || '65' }}
+          minCoverage: ${{ vars.MIN_COVERAGE }}
 
   call-build-docker:
     needs: action-based-ci
