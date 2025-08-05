@@ -28,7 +28,6 @@ jobs:
         with:
           min-coverage: ${{ vars.MIN_COVERAGE || '65' }}
 
-    secrets: inherit
 
   call-build-docker:
     needs: action-based-ci
