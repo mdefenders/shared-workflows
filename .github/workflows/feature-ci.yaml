@@ -26,8 +26,7 @@ jobs:
       - name: Run Action-Based CI
         uses: mdefenders-actions/ci-code-quality@dev
         with:
-          min-coverage: ${{ vars.MIN_COVERAGE || '65' }}
-
+          minCoverage: ${{ vars.MIN_COVERAGE || '65' }}
 
   call-build-docker:
     needs: action-based-ci
