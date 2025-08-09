@@ -105,7 +105,7 @@ jobs:
           esac
           if [[ -n "${{ vars.SERVICE_PORT }}" ]]; then
             PORT=:${{ vars.SERVICE_PORT }}
-          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.${{ vasr.DOMAIN || 'svc.cluster.local' }}$PORT
+          SERVICE_URL=http://${GITHUB_REPOSITORY##*/}.${ENV_NAME}.${{ vars.DOMAIN || 'svc.cluster.local' }}$PORT
           export SERVICE_URL
           echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_ENV          
           echo "Tests executed successfully."
