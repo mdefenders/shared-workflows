@@ -16,7 +16,7 @@ on:
       current-tag:
         value: ${{ inputs.current-tag }}
       new-tag:
-        value: ${{ inputs.new-tag }}        
+        value: ${{ inputs.new-tag }}
     secrets:
       CICD_SLACK_WEBHOOK:
         required: true
@@ -111,6 +111,7 @@ jobs:
           echo "Tests executed successfully."
 
       - name: Print summary
+        if: always()
         run: |
           echo "### Service ${SERVICE_URL} ${TITLE} test report:" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY          
@@ -118,7 +119,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Notyfy about test results
-        if: ${{ fromJSON(vars.NOTIFY_DEPLY_SUCCESS || 'true') }}
+        if: ${{ always() && fromJSON(vars.NOTIFY_DEPLY_SUCCESS || 'true') }}
         run: |
           MESSAGE="${GITHUB_REPOSITORY##*/} has been successfully deployed to *${{ inputs.environment }}* environment.\n\
           Workflow Run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\n\
