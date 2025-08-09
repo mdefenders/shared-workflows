@@ -10,12 +10,16 @@ jobs:
     uses: mdefenders/shared-workflows/.github/workflows/metrics-init.yaml@dev
 
   action-based-ci:
+    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     needs: call-metrics-init
     name: Action-Based CI Workflow
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Setup Node.js
         id: setup-node
