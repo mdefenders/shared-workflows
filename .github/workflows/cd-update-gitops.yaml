@@ -66,4 +66,3 @@ jobs:
           replicas: ${{ inputs.replicas }}
           rollback: ${{ inputs.rollback }}
           dry-run: ${{ inputs.dry-run }}
-
