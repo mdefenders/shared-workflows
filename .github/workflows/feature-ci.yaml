@@ -65,11 +65,17 @@ jobs:
           tags: ${{ steps.get-image-tags.outputs.all-images }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Install Trivy Template
+        run: |
+          mkdir -p contrib
+          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/mdefenders/misc/refs/heads/main/aquasecurity/trivy/contrib/html.tpl          
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: '${{ steps.get-image-tags.outputs.new-image }}:${{  steps.get-image-tags.outputs.new-tag }}'
-          format: 'table'
+          format: 'template'
+          template: "@contrib/html.tpl"
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
