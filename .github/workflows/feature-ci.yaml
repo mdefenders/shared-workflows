@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
+      new-image: ${{ steps.get-image-tags.outputs.new-image }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
