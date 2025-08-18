@@ -53,7 +53,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
-          images: ${{ env.DOCKERHUB_REPO }}
+          images: ${{ steps.get-image-tags.outputs.new-image }}
 
       - name: Build and push (optional) Docker image
         id: build-and-push
