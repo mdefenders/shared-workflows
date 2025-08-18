@@ -44,8 +44,10 @@ on:
     outputs:
       report:
         description: Prepare Docker Build Report
+        value: ${{ jobs.update-gitops.outputs.report }}
       commit-id:
         description: Commit ID of the GitOps commit
+        value: ${{ jobs.update-gitops.outputs.commit-id }}
 jobs:
   update-gitops:
     name: Update GitOps Manifest
