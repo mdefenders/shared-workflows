@@ -14,6 +14,8 @@ jobs:
     needs: call-metrics-init
     name: Action-Based CI Workflow
     runs-on: ubuntu-latest
+    outputs:
+      new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,31 +39,48 @@ jobs:
         with:
           minCoverage: ${{ vars.MIN_COVERAGE }}
 
-  call-build-docker:
-    needs: action-based-ci
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
-    name: Build Docker Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/build-docker.yaml@dev
-    with:
-      push-image: true
-    secrets: inherit
+      - name: Get Image Tags
+        id: get-image-tags
+        uses: mdefenders-actions/ci-prepare-docker-build@dev
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5.0.0
+        with:
+          images: ${{ env.DOCKERHUB_REPO }}
+
+      - name: Build and push (optional) Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v6.18.0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.get-image-tags.outputs.all-images }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   call-scan-docker:
-    needs: call-build-docker
+    needs: action-based-ci
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Scan Docker Workflow
     uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
     with:
-      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
+      new-tag: ${{ needs.action-based-ci.outputs.new-tag }}
     secrets: inherit
 
   call-cd-deploy:
-    needs: call-build-docker
+    needs: action-based-ci
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Deploy Image Workflow
     uses: mdefenders/shared-workflows/.github/workflows/cd-deploy.yaml@dev
     with:
-      new-tag: ${{ needs.call-build-docker.outputs.new-tag }}
+      new-tag: ${{ needs.action-based-ci.outputs.new-tag }}
       gitops-file: ${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}
       environment: 'dev'
       replicas: ${{ fromJSON(vars.DEV_TEST_REPLICAS || '3') }}
@@ -89,7 +108,7 @@ jobs:
       replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
 
   call-metrics-push-success:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
+    needs: [ action-based-ci, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -100,7 +119,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ call-build-docker, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
+    needs: [ action-based-ci, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
