@@ -17,6 +17,9 @@ jobs:
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
     steps:
+      - name: Get start time
+        run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
