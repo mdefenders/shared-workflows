@@ -80,16 +80,15 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+          output: 'trivy-report.html'
 
-
-  call-scan-docker:
-    needs: action-based-ci
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
-    name: Scan Docker Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/scan-docker.yaml@dev
-    with:
-      new-tag: ${{ needs.action-based-ci.outputs.new-tag }}
-    secrets: inherit
+      - name: Print Trivy summary
+        if: always()
+        run: |
+          echo '### Trivy scan report:' >> $GITHUB_STEP_SUMMARY
+          echo '<details><summary>Click to expand Image Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
+          cat trivy-report.html >> $GITHUB_STEP_SUMMARY
+          echo '</details>' >> $GITHUB_STEP_SUMMARY
 
   call-cd-deploy:
     needs: action-based-ci
@@ -125,7 +124,7 @@ jobs:
       replicas: ${{ fromJSON(vars.DEV_REPLICAS || '0') }}
 
   call-metrics-push-success:
-    needs: [ action-based-ci, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
+    needs: [ action-based-ci, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
@@ -136,7 +135,7 @@ jobs:
     secrets: inherit
 
   call-metrics-push-failure:
-    needs: [ action-based-ci, call-scan-docker, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
+    needs: [ action-based-ci, call-cd-deploy, call-cd-undeploy, call-trigger-tests, action-based-ci, call-metrics-init ]
     if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Push Metrics Workflow
     uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
