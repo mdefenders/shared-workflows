@@ -81,6 +81,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
+
   call-scan-docker:
     needs: action-based-ci
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
