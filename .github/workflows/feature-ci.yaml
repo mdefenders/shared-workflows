@@ -68,7 +68,7 @@ jobs:
       - name: Install Trivy Template
         run: |
           mkdir -p contrib
-          wget -q -O contrib/html.tpl https://raw.githubusercontent.com/mdefenders/misc/refs/heads/main/aquasecurity/trivy/contrib/html.tpl          
+          wget -q -O contrib/html.tpl  ${{ vars.TRIVY_TEMPLATE || 'https://raw.githubusercontent.com/mdefenders/misc/refs/heads/main/aquasecurity/trivy/contrib/html.tpl'}}          
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
