@@ -1,0 +1,69 @@
+name: cd-update-gitops
+on:
+  workflow_call:
+    inputs:
+      gitops-branch:
+        required: true
+        type: string
+        description: 'GitOps branch to update'
+      new-tag:
+        required: true
+        type: string
+        description: 'Tag to deploy'
+      gitops-file:
+        required: true
+        type: string
+        description: 'GitOps manifest to update'
+      environment:
+        required: true
+        type: string
+        description: 'Environment to deploy to'
+      image:
+        required: true
+        type: string
+        description: 'Image to deploy'
+      app:
+        required: true
+        type: string
+        description: 'Application name'
+      replicas:
+        required: false
+        type: string
+        default: '3'
+        description: 'Number of replicas to deploy'
+      rollback:
+        required: true
+        type: string
+        default: 'false'
+        description: 'Rollback to previous version'
+      dry-run:
+        required: true
+        type: string
+        default: 'false'
+        description: 'Dry run mode, do not commit changes'
+    outputs:
+      report:
+        description: Prepare Docker Build Report
+      commit-id:
+        description: Commit ID of the GitOps commit
+jobs:
+  update-gitops:
+    name: Update GitOps Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update manifest
+        uses: mdefenders-actions/cd-update-gitops@dev
+        with:
+          gitops-branch: ${{ inputs.gitops-branch }}
+          gitops-file: ${{ inputs.gitops-file }}
+          new-tag: ${{ inputs.new-tag }}
+          environment: ${{ inputs.environment }}
+          image: ${{ inputs.image }}
+          app: ${{ inputs.app }}
+          replicas: ${{ inputs.replicas }}
+          rollback: ${{ inputs.rollback }}
+          dry-run: ${{ inputs.dry-run }}
+
