@@ -1,4 +1,4 @@
-name: cd-update-gitops
+name: CD Update GitOps Manifest
 on:
   workflow_call:
     inputs:
@@ -50,11 +50,15 @@ jobs:
   update-gitops:
     name: Update GitOps Manifest
     runs-on: ubuntu-latest
+    outputs:
+      report: ${{ steps.update-manifest.outputs.report }}
+      commit-id: ${{ steps.update-manifest.outputs.commit-id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Update manifest
+        id: update-manifest
         uses: mdefenders-actions/cd-update-gitops@dev
         with:
           gitops-branch: ${{ inputs.gitops-branch }}
