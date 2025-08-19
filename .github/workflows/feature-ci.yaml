@@ -109,7 +109,7 @@ jobs:
                   "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
                   "environment": "dev",
                   "image": "${{ steps.get-image-tags.outputs.new-image }}",
-                  "app": "my-app-back",
+                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
                   "replicas": "${{ vars.DEV_TEST_REPLICAS || '3' }}",
                   "rollback": "false",
                   "dry-run": "false"
@@ -138,7 +138,7 @@ jobs:
                   "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
                   "environment": "dev",
                   "image": "${{ steps.get-image-tags.outputs.new-image }}",
-                  "app": "my-app-back",
+                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
                   "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
                   "rollback": "false",
                   "dry-run": "false"
