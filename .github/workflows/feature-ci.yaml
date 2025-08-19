@@ -79,7 +79,7 @@ jobs:
           image-ref: '${{ steps.get-image-tags.outputs.new-image }}:${{ steps.get-image-tags.outputs.new-tag }}'
           format: 'template'
           template: "@contrib/html.tpl"
-          exit-code: ${{ vars.FAIL_BUILS_ON_SCAN == 'true' && '1' || '0' }}
+          exit-code: ${{ vars.FAIL_BUILDS_ON_SCAN == 'true' && '1' || '0' }}
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -92,6 +92,29 @@ jobs:
           echo '<details><summary>Click to expand Image Scan Result</summary>' >> $GITHUB_STEP_SUMMARY          
           cat trivy-report.html >> $GITHUB_STEP_SUMMARY
           echo '</details>' >> $GITHUB_STEP_SUMMARY
+
+      - name: Call CD
+        id: call-cd
+        uses: mdefenders-actions/call-action@dev
+        with:
+          workflows-to-call: |
+            {
+              "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
+                "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
+                "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
+                "data": {
+                  "gitops-branch": "${{ github.head_ref || github.ref_name }}",
+                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
+                  "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
+                  "environment": "dev",
+                  "image": "${{ steps.get-image-tags.outputs.new-image }}",
+                  "app": "my-app-back",
+                  "replicas": "${{ vars.DEV_TEST_REPLICAS || '3' }}",
+                  "rollback": "false",
+                  "dry-run": "false"
+                }
+              }
+            }
 
   call-cd-deploy:
     needs: action-based-ci
