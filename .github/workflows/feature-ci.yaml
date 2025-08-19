@@ -97,7 +97,7 @@ jobs:
         id: call-cd
         uses: mdefenders-actions/call-action@dev
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
           workflows-to-call: |
             {
               "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
