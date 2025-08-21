@@ -30,7 +30,7 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "${{ vars.NODE_VER || '20' }}"
           cache: npm
 
       - name: Install Dependencies
@@ -145,6 +145,51 @@ jobs:
                 }
               }
             }
+
+  post-deploy:
+    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    name: Post-Deploy Workflow
+    runs-on: ubuntu-latest
+    needs: action-based-ci
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "${{ vars.NODE_VER || '20' }}"
+          cache: npm
+
+      - name: Verify deployment
+        uses: mdefenders-actions/cd-verify-deployment@dev
+        with:
+          expected-pods: ${{ vars.DEV_TEST_REPLICAS || '3' }}
+          pull-interval: ${{ vars.DEPLOY_PULL_INTERVAL || '20' }}
+          pull-count: ${{ vars.DEPLOY_PULL_COUNT || '10' }}
+          force-run-tests: ${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
+          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
+          revision-tag: ${{ needs.action-based-ci.outputs.new-tag }}
+          k8s-namespace: ${{
+            (
+            (vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository))
+            .replace('-gitops', '')
+            + '-' +
+            (github.head_ref || github.ref_name)
+            .toLowerCase()
+            .replace('/', '-')
+            .replace('_', '-')
+            )
+      } }
+
+      - name: Post-Deploy Tests
+        uses: mdefenders-actions/ci-code-quality@dev
+        with:
+          runLint: false
+          runUnitTests: false
+          runIntegrationTests: true
+          reportTitle: 'Regression Tests'
 
   call-cd-deploy:
     needs: action-based-ci
