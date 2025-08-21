@@ -167,7 +167,8 @@ jobs:
           force-run-tests: ${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
           revision-tag: ${{ needs.action-based-ci.outputs.new-tag }}
-          k8s-namespace:  ${{ steps.ns.outputs.namespace }}
+          k8s-namespace: ${{ steps.ns.outputs.namespace }}
+          service-domain: ${{ vars.K8S_SERVICE_DOMAIN || 'svc.cluster.local' }}
 
       - name: Post-Deploy Tests
         uses: mdefenders-actions/ci-code-quality@dev
@@ -176,6 +177,9 @@ jobs:
           runUnitTests: false
           runIntegrationTests: true
           reportTitle: 'Regression Tests'
+          appName: ${{ vars.APP_NAME || github.event.repository.name }}
+          serviceDomain: ${{ vars.DOMAIN || 'svc.cluster.local' }}
+          namespace: ${{ steps.ns.outputs.namespace }}
 
       - name: Call CD Reduce
         id: call-cd-reduce
