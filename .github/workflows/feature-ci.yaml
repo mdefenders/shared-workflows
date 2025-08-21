@@ -134,6 +134,23 @@ jobs:
           node-version: "${{ vars.NODE_VER || '20' }}"
           cache: npm
 
+      - name: Compute namespace
+        id: ns
+        run: |
+          repo="${{ vars.GITOPS_REPO }}"
+          if [ -z "$repo" ]; then
+            repo="${GITHUB_REPOSITORY}-gitops"
+          fi
+          # remove `-gitops` suffix
+          repo="${repo%-gitops}"
+
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          # replace / and _ with -
+          branch="${branch//\//-}"
+          branch="${branch//_/-}"
+
+          echo "namespace=${repo}-${branch}" >> $GITHUB_OUTPUT
+
       - name: Verify deployment
         uses: mdefenders-actions/cd-verify-deployment@dev
         with:
@@ -143,7 +160,7 @@ jobs:
           force-run-tests: ${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
           revision-tag: ${{ needs.action-based-ci.outputs.new-tag }}
-          k8s-namespace: ${{ format('{0}-{1}', (vars.GITOPS_REPO != '' && replace(vars.GITOPS_REPO, '-gitops', '') || replace(format('{0}-gitops', github.repository), '-gitops', '')), replace(replace((github.head_ref || github.ref_name), '/', '-'), '_', '-')) }}
+          k8s-namespace:  ${{ steps.ns.outputs.namespace }}
 
       - name: Post-Deploy Tests
         uses: mdefenders-actions/ci-code-quality@dev
