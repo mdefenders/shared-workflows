@@ -139,21 +139,15 @@ jobs:
         with:
           script: |
             const repo = process.env.GITOPS_REPO || ""
-            const githubRepo = context.repo.owner + "/" + context.repo.repo
-            let base = repo !== "" ? repo : `${githubRepo}-gitops`
-            
-            // strip -gitops suffix if present
-            base = base.replace(/-gitops$/, "")
-            
+            let repoName = repo !== "" ? repo.split("/").pop() : context.repo.repo
+            let base = repoName.replace(/-gitops$/, "")
             // branch or ref
             let branch = context.ref.replace("refs/heads/", "")
             if (context.payload.pull_request) {
               branch = context.payload.pull_request.head.ref
             }
-            
             // sanitize: replace / and _ with -
             branch = branch.replace(/[\/_]/g, "-")
-            
             const ns = `${base}-${branch}`
             core.setOutput("namespace", ns)
             core.info(`Namespace: ${ns}`)
@@ -168,7 +162,6 @@ jobs:
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
           revision-tag: ${{ needs.action-based-ci.outputs.new-tag }}
           k8s-namespace: ${{ steps.ns.outputs.namespace }}
-          service-domain: ${{ vars.K8S_SERVICE_DOMAIN || 'svc.cluster.local' }}
 
       - name: Post-Deploy Tests
         uses: mdefenders-actions/ci-code-quality@dev
