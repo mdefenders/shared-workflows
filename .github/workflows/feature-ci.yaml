@@ -150,7 +150,8 @@ jobs:
             branch = branch.replace(/[\/_]/g, "-")
             const ns = `${base}-${branch}`
             core.setOutput("namespace", ns)
-            core.info(`Namespace: ${ns}`)
+            core.setOutput("subdomain", branch)
+            core.info(`Namespace: ${ns}, Subdomain: ${branch}`)
 
       - name: Verify deployment
         uses: mdefenders-actions/cd-verify-deployment@dev
@@ -173,6 +174,7 @@ jobs:
           appName: ${{ vars.APP_NAME || github.event.repository.name }}
           serviceDomain: ${{ vars.DOMAIN || 'svc.cluster.local' }}
           namespace: ${{ steps.ns.outputs.namespace }}
+          subdomain: ${{ steps.ns.outputs.subdomain }}
 
       - name: Call CD Reduce
         id: call-cd-reduce
