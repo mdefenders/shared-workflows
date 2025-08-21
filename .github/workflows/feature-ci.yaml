@@ -117,34 +117,6 @@ jobs:
               }
             }
 
-      - name: Run Integration Tests
-        uses: mdefenders-actions/ci-code-quality@dev
-        with:
-          minCoverage: ${{ vars.MIN_COVERAGE }}
-
-      - name: Call CD Reduce
-        id: call-cd-reduce
-        uses: mdefenders-actions/call-action@dev
-        with:
-          github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
-          workflows-to-call: |
-            {
-              "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
-                "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
-                "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
-                "data": {
-                  "gitops-branch": "${{ github.head_ref || github.ref_name }}",
-                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
-                  "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
-                  "environment": "dev",
-                  "image": "${{ steps.get-image-tags.outputs.new-image }}",
-                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
-                  "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
-                  "rollback": "false",
-                  "dry-run": "false"
-                }
-              }
-            }
 
   post-deploy:
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
@@ -180,8 +152,7 @@ jobs:
             .toLowerCase()
             .replace('/', '-')
             .replace('_', '-')
-            )
-      } }
+            )}}
 
       - name: Post-Deploy Tests
         uses: mdefenders-actions/ci-code-quality@dev
@@ -190,6 +161,30 @@ jobs:
           runUnitTests: false
           runIntegrationTests: true
           reportTitle: 'Regression Tests'
+
+      - name: Call CD Reduce
+        id: call-cd-reduce
+        uses: mdefenders-actions/call-action@dev
+        with:
+          github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
+          workflows-to-call: |
+            {
+              "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
+                "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
+                "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
+                "data": {
+                  "gitops-branch": "${{ github.head_ref || github.ref_name }}",
+                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
+                  "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
+                  "environment": "dev",
+                  "image": "${{ steps.get-image-tags.outputs.new-image }}",
+                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
+                  "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
+                  "rollback": "false",
+                  "dry-run": "false"
+                }
+              }
+            }          
 
   call-cd-deploy:
     needs: action-based-ci
