@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
+      new-image: ${{ steps.get-image-tags.outputs.new-image }}
     steps:
       - name: Get start time
         run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
@@ -190,10 +191,10 @@ jobs:
                 "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
                 "data": {
                   "gitops-branch": "${{ github.head_ref || github.ref_name }}",
-                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
+                  "new-tag": "${{ needs.action-based-ci.outputs.new-tag }}",
                   "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
                   "environment": "dev",
-                  "image": "${{ steps.get-image-tags.outputs.new-image }}",
+                  "image": "${{ needs.action-based-ci.outputs.new-image }}",
                   "app": "${{ vars.APP_NAME || github.event.repository.name }}",
                   "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
                   "rollback": "false",
