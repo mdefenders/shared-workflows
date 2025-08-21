@@ -199,24 +199,17 @@ jobs:
                 }
               }
             }
-
-  call-metrics-push-success:
-    needs: [ post-deploy ]
-    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
-    name: Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
-    with:
-      start-time: ${{ needs.post-deploy.outputs.start-time }}
-      workflow-name: 'Feature Branch CI'
-      workflow-success: 1
-    secrets: inherit
-
-  call-metrics-push-failure:
-    needs: [ post-deploy ]
-    if: failure() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
-    name: Push Metrics Workflow
-    uses: mdefenders/shared-workflows/.github/workflows/metrics-push.yaml@dev
-    with:
-      start-time: ${{ needs.post-deploy.outputs.start-time }}
-      workflow-name: 'Feature Branch CI'
-    secrets: inherit
+      - name: Notify and Report
+        if: always()
+        uses: mdefenders-actions/cd-notify-and-report@dev
+        with:
+          image-name: ${{ needs.action-based-ci.outputs.new-image }}
+          image-tag: ${{ needs.action-based-ci.outputs.new-tag }}
+          prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
+          workflow-name: 'Feature Branch CI'
+          cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
+          service-url: 'url'
+          loki-push-url: ${{ vars.LOKI_PUSH_URL }}
+          start-time: ${{ needs.action-based-ci.outputs.start-time }}
+          workflow-success: ${{ success() && '1' || '0' }}
+          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
