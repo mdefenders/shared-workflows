@@ -114,9 +114,23 @@ jobs:
                 }
               }
             }
+      - name: Notify and Report on Failure
+        if: failure()
+        uses: mdefenders-actions/cd-notify-and-report@dev
+        with:
+          image-name: ${{ steps.get-image-tags.outputs.new-image }}
+          image-tag: ${{ steps.get-image-tags.outputs.new-tag }}
+          prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
+          workflow-name: 'Feature Branch CI'
+          cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
+          service-url: 'url'
+          loki-push-url: ${{ vars.LOKI_PUSH_URL }}
+          start-time: ${{ steps.get-start-time.outputs.start-time }}
+          workflow-success: '0'
+          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
 
   post-deploy:
-    if: always() && startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
+    if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Post-Deploy Workflow
     runs-on: ubuntu-latest
     needs: action-based-ci
@@ -211,5 +225,5 @@ jobs:
           service-url: 'url'
           loki-push-url: ${{ vars.LOKI_PUSH_URL }}
           start-time: ${{ needs.action-based-ci.outputs.start-time }}
-          workflow-success: ${{ needs.action-based-ci.result == 'success' && '1' || '0' }}
+          workflow-success: ${{ job.status == 'success' && '1' || '0' }}
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
