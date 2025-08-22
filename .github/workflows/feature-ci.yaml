@@ -14,6 +14,9 @@ jobs:
       new-image: ${{ steps.get-image-tags.outputs.new-image }}
       start-time: ${{ steps.get-start-time.outputs.start-time }}
     steps:
+      - name: Pre-Flight Checks
+        uses: mdefenders-actions/ci-preflight@dev
+
       - name: Get start time
         id: get-start-time
         run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
