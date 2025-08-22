@@ -12,12 +12,7 @@ jobs:
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
       new-image: ${{ steps.get-image-tags.outputs.new-image }}
-      start-time: ${{ steps.get-start-time.outputs.start-time }}
     steps:
-      - name: Get start time
-        id: get-start-time
-        run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -121,11 +116,11 @@ jobs:
           image-name: ${{ steps.get-image-tags.outputs.new-image }}
           image-tag: ${{ steps.get-image-tags.outputs.new-tag }}
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
-          workflow-name: 'Feature Branch CI'
+          workflow-name: ${{ github.workflow }}
           cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
           service-url: 'url'
           loki-push-url: ${{ vars.LOKI_PUSH_URL }}
-          start-time: ${{ steps.get-start-time.outputs.start-time }}
+          start-time: ${{ github.event.workflow_run.created_at }}
           workflow-success: '0'
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
 
@@ -220,10 +215,10 @@ jobs:
           image-name: ${{ needs.action-based-ci.outputs.new-image }}
           image-tag: ${{ needs.action-based-ci.outputs.new-tag }}
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
-          workflow-name: 'Feature Branch CI'
+          workflow-name: ${{ github.workflow }}
           cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
           service-url: 'url'
           loki-push-url: ${{ vars.LOKI_PUSH_URL }}
-          start-time: ${{ needs.action-based-ci.outputs.start-time }}
+          start-time: ${{ github.event.workflow_run.created_at }}
           workflow-success: ${{ job.status == 'success' && '1' || '0' }}
           app-name: ${{ vars.APP_NAME || github.event.repository.name }}
