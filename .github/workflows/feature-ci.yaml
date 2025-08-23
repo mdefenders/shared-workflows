@@ -192,7 +192,7 @@ jobs:
                 "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
                 "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
                 "data": {
-                  "gitops-branch": "${{ needs.action-based-ci.outputs.app-name}}",
+                  "gitops-branch": "${{ steps.ci-preflight.outputs.effective-branch }}",
                   "new-tag": "${{ needs.action-based-ci.outputs.new-tag }}",
                   "gitops-file": "${{ needs.action-based-ci.outputs.gitops-file }}",
                   "environment": "dev",
