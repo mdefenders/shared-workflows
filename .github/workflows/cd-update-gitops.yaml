@@ -14,10 +14,6 @@ on:
         required: true
         type: string
         description: 'GitOps manifest to update'
-      environment:
-        required: true
-        type: string
-        description: 'Environment to deploy to'
       image:
         required: true
         type: string
@@ -69,7 +65,6 @@ jobs:
           gitops-branch: ${{ inputs.gitops-branch }}
           gitops-file: ${{ inputs.gitops-file }}
           new-tag: ${{ inputs.new-tag }}
-          environment: ${{ inputs.environment }}
           image: ${{ inputs.image }}
           app: ${{ inputs.app }}
           replicas: ${{ inputs.replicas }}
