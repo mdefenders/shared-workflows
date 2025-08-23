@@ -12,14 +12,19 @@ jobs:
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
       new-image: ${{ steps.get-image-tags.outputs.new-image }}
-      start-time: ${{ steps.get-start-time.outputs.start-time }}
+      start-time: ${{ steps.ci-preflight.outputs.start-time }}
+      gitops-repo: ${{ steps.ci-preflight.outputs.gitops-repo }}
+      gitops-file: ${{ steps.ci-preflight.outputs.gitops-file }}
+      app-name: ${{ steps.ci-preflight.outputs.app-name }}
+      target-namespace: ${{ steps.ci-preflight.outputs.target-namespace }}
+      public-service-fqdn: ${{ steps.ci-preflight.outputs.public-service-fqdn }}
+      local-service-fqdn: ${{ steps.ci-preflight.outputs.local-service-fqdn }}
+      service-url: ${{ steps.ci-preflight.outputs.service-url }}
+
     steps:
       - name: Pre-Flight Checks
+        id: ci-preflight
         uses: mdefenders-actions/ci-preflight@dev
-
-      - name: Get start time
-        id: get-start-time
-        run: echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: Checkout repository
         uses: actions/checkout@v4
