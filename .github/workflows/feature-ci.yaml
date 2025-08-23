@@ -17,9 +17,12 @@ jobs:
       gitops-file: ${{ steps.ci-preflight.outputs.gitops-file }}
       app-name: ${{ steps.ci-preflight.outputs.app-name }}
       target-namespace: ${{ steps.ci-preflight.outputs.target-namespace }}
+      subdomain: ${{ steps.ci-preflight.outputs.subdomain }}
       public-service-fqdn: ${{ steps.ci-preflight.outputs.public-service-fqdn }}
       local-service-fqdn: ${{ steps.ci-preflight.outputs.local-service-fqdn }}
       service-url: ${{ steps.ci-preflight.outputs.service-url }}
+      effective-branch: ${{ steps.ci-preflight.outputs.effective-branch }}
+
 
     steps:
       - name: Pre-Flight Checks
@@ -108,16 +111,16 @@ jobs:
           github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
           workflows-to-call: |
             {
-              "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
+              "${{ steps.ci-preflight.outputs.gitops-repo }}": {
                 "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
                 "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
                 "data": {
-                  "gitops-branch": "${{ github.head_ref || github.ref_name }}",
+                  "gitops-branch": "${{ steps.ci-preflight.outputs.effective-branch }}",
                   "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
-                  "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
+                  "gitops-file": "${{ steps.ci-preflight.outputs.gitops-file }}",
                   "environment": "dev",
                   "image": "${{ steps.get-image-tags.outputs.new-image }}",
-                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
+                  "app": "${{ steps.ci-preflight.outputs.app-name }}",
                   "replicas": "${{ vars.DEV_TEST_REPLICAS || '3' }}",
                   "rollback": "false",
                   "dry-run": "false"
@@ -133,19 +136,17 @@ jobs:
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
           workflow-name: ${{ github.workflow }}
           cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
-          service-url: 'url'
+          service-url: ${{ steps.ci-preflight.outputs.service-url }}
           loki-push-url: ${{ vars.LOKI_PUSH_URL }}
-          start-time: ${{ needs.action-based-ci.outputs.start-time }}
+          start-time: ${{ steps.ci-preflight.outputs.start-time }}
           workflow-success: '0'
-          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
+          app-name: ${{ steps.ci-preflight.outputs.app-name }}
 
   post-deploy:
     if: startsWith(github.head_ref || github.ref_name, 'feature/') && github.ref_type == 'branch'
     name: Post-Deploy Workflow
     runs-on: ubuntu-latest
     needs: action-based-ci
-    outputs:
-      start-time: ${{ needs.action-based-ci.outputs.start-time }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -157,26 +158,6 @@ jobs:
           node-version: "${{ vars.NODE_VER || '20' }}"
           cache: npm
 
-      - name: Compute namespace
-        id: ns
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const repo = process.env.GITOPS_REPO || ""
-            let repoName = repo !== "" ? repo.split("/").pop() : context.repo.repo
-            let base = repoName.replace(/-gitops$/, "")
-            // branch or ref
-            let branch = context.ref.replace("refs/heads/", "")
-            if (context.payload.pull_request) {
-              branch = context.payload.pull_request.head.ref
-            }
-            // sanitize: replace / and _ with -
-            branch = branch.replace(/[\/_]/g, "-")
-            const ns = `${base}-${branch}`
-            core.setOutput("namespace", ns)
-            core.setOutput("subdomain", branch)
-            core.info(`Namespace: ${ns}, Subdomain: ${branch}`)
-
       - name: Verify deployment
         uses: mdefenders-actions/cd-verify-deployment@dev
         with:
@@ -184,9 +165,9 @@ jobs:
           pull-interval: ${{ vars.DEPLOY_PULL_INTERVAL || '20' }}
           pull-count: ${{ vars.DEPLOY_PULL_COUNT || '10' }}
           force-run-tests: ${{ vars.DEPLOY_FORCE_RUN_TESTS || 'false' }}
-          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
+          app-name: ${{ needs.action-based-ci.outputs.app-name }}
           revision-tag: ${{ needs.action-based-ci.outputs.new-tag }}
-          k8s-namespace: ${{ steps.ns.outputs.namespace }}
+          k8s-namespace: ${{ needs.action-based-ci.outputs.target-namespace }}
 
       - name: Post-Deploy Tests
         uses: mdefenders-actions/ci-code-quality@dev
@@ -195,10 +176,10 @@ jobs:
           runUnitTests: false
           runIntegrationTests: true
           reportTitle: 'Regression Tests'
-          appName: ${{ vars.APP_NAME || github.event.repository.name }}
+          appName: ${{ needs.action-based-ci.outputs.app-name }}
           serviceDomain: ${{ vars.DOMAIN || 'svc.cluster.local' }}
-          namespace: ${{ steps.ns.outputs.namespace }}
-          subdomain: ${{ steps.ns.outputs.subdomain }}
+          namespace: ${{ needs.action-based-ci.outputs.target-namespace }}
+          subdomain: ${{ needs.action-based-ci.outputs.subdomain }}
 
       - name: Call CD Reduce
         id: call-cd-reduce
@@ -207,16 +188,16 @@ jobs:
           github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
           workflows-to-call: |
             {
-              "${{ vars.GITOPS_REPO != '' && vars.GITOPS_REPO || format('{0}-gitops', github.repository) }}": {
+              "${{ needs.action-based-ci.outputs.gitops-repo }}": {
                 "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
                 "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
                 "data": {
-                  "gitops-branch": "${{ github.head_ref || github.ref_name }}",
+                  "gitops-branch": "${{ needs.action-based-ci.outputs.app-name}}",
                   "new-tag": "${{ needs.action-based-ci.outputs.new-tag }}",
-                  "gitops-file": "${{ vars.GITOPS_FILE_PATH || 'deploy/environments' }}/dev/${{ vars.GITOPS_FILE_NAME || 'values.yaml' }}",
+                  "gitops-file": "${{ needs.action-based-ci.outputs.gitops-file }}",
                   "environment": "dev",
                   "image": "${{ needs.action-based-ci.outputs.new-image }}",
-                  "app": "${{ vars.APP_NAME || github.event.repository.name }}",
+                  "app": "${{ needs.action-based-ci.outputs.app-name }}",
                   "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
                   "rollback": "false",
                   "dry-run": "false"
@@ -232,8 +213,8 @@ jobs:
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
           workflow-name: ${{ github.workflow }}
           cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
-          service-url: 'url'
+          service-url: ${{ needs.action-based-ci.outputs.service-url }}
           loki-push-url: ${{ vars.LOKI_PUSH_URL }}
           start-time: ${{ needs.action-based-ci.outputs.start-time }}
           workflow-success: ${{ job.status == 'success' && '1' || '0' }}
-          app-name: ${{ vars.APP_NAME || github.event.repository.name }}
+          app-name: ${{ needs.action-based-ci.outputs.app-name }}
