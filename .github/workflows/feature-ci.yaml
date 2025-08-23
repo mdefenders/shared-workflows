@@ -25,6 +25,8 @@ jobs:
       - name: Pre-Flight Checks
         id: ci-preflight
         uses: mdefenders-actions/ci-preflight@dev
+        with:
+          domain: ${{ vars.DOMAIN }}
 
       - name: Checkout repository
         uses: actions/checkout@v4
