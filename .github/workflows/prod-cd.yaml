@@ -63,7 +63,7 @@ jobs:
         uses: mdefenders-actions/cd-notify-and-report@dev
         with:
           image-name: ${{ steps.ci-preflight.outputs.image-repo }}
-          image-tag: ${{ ssteps.ci-preflight.outputs.promoted-version }}
+          image-tag: ${{ steps.ci-preflight.outputs.promoted-version }}
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
           workflow-name: ${{ github.workflow }}
           cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
