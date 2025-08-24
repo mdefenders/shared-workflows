@@ -183,7 +183,7 @@ jobs:
           runLint: false
           runUnitTests: false
           runIntegrationTests: true
-          reportTitle: 'Regression Tests'
+          reportTitle: 'Integration Tests'
           namespace: ${{ needs.action-based-ci.outputs.target-namespace }}
           url: ${{ needs.action-based-ci.outputs.service-url }}
 
