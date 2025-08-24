@@ -121,6 +121,12 @@ jobs:
           intTestCommand: ${{ vars.SMOKE_TEST_COMMAND || 'make test-smoke' }}
           url: ${{ needs.action-based-promote.outputs.service-url }}
 
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          echo "*PLACEHOLDER* Post-deploy tests failed. Initiating rollback..."
+
+
 
       - name: Notify and Report
         if: always()
