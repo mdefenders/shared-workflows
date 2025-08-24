@@ -126,8 +126,6 @@ jobs:
         run: |
           echo "*PLACEHOLDER* Post-deploy tests failed. Initiating rollback..."
 
-
-
       - name: Notify and Report
         if: always()
         uses: mdefenders-actions/cd-notify-and-report@dev
