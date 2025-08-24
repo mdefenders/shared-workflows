@@ -58,3 +58,18 @@ jobs:
                 }
               }
             }
+      - name: Notify and Report on Failure
+        if: failure()
+        uses: mdefenders-actions/cd-notify-and-report@dev
+        with:
+          image-name: ${{ steps.ci-preflight.outputs.image-repo }}
+          image-tag: ${{ ssteps.ci-preflight.outputs.promoted-version }}
+          prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
+          workflow-name: ${{ github.workflow }}
+          cicd-slack-webhook: ${{ secrets.CICD_SLACK_WEBHOOK }}
+          service-url: ${{ steps.ci-preflight.outputs.service-url }}
+          loki-push-url: ${{ vars.LOKI_PUSH_URL }}
+          start-time: ${{ steps.ci-preflight.outputs.start-time }}
+          workflow-success: '0'
+          app-name: ${{ steps.ci-preflight.outputs.app-name }}
+          environment: 'prod'
