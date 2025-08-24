@@ -56,6 +56,7 @@ jobs:
         uses: mdefenders-actions/ci-code-quality@dev
         with:
           minCoverage: ${{ vars.MIN_COVERAGE }}
+          url: ${{ steps.ci-preflight.outputs.service-url }}
 
       - name: Get Image Tags
         id: get-image-tags
