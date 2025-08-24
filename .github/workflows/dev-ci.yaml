@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new-tag: ${{ steps.get-image-tags.outputs.new-tag }}
-      new-image: ${{ steps.get-image-tags.outputs.new-image }}
+      image-repo: ${{ steps.ci-preflight.outputs.image-repo }}
       start-time: ${{ steps.ci-preflight.outputs.start-time }}
       gitops-repo: ${{ steps.ci-preflight.outputs.gitops-repo }}
       gitops-file: ${{ steps.ci-preflight.outputs.gitops-file }}
@@ -71,7 +71,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5.0.0
         with:
-          images: ${{ steps.get-image-tags.outputs.new-image }}
+          images: ${{ steps.ci-preflight.outputs.image-repo }}
 
       - name: Build and push (optional) Docker image
         id: build-and-push
@@ -91,7 +91,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ steps.get-image-tags.outputs.new-image }}:${{ steps.get-image-tags.outputs.new-tag }}'
+          image-ref: '${{ steps.ci-preflight.outputs.image-repo }}:${{ steps.get-image-tags.outputs.new-tag }}'
           format: 'template'
           template: "@contrib/html.tpl"
           exit-code: ${{ vars.FAIL_BUILDS_ON_SCAN == 'true' && '1' || '0' }}
@@ -122,7 +122,7 @@ jobs:
                   "gitops-branch": "${{ steps.ci-preflight.outputs.effective-branch }}",
                   "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
                   "gitops-file": "${{ steps.ci-preflight.outputs.gitops-file }}",
-                  "image": "${{ steps.get-image-tags.outputs.new-image }}",
+                  "image": "${{ steps.ci-preflight.outputs.image-repo }}",
                   "app": "${{ steps.ci-preflight.outputs.app-name }}",
                   "replicas": "${{ vars.DEV_TEST_REPLICAS || '3' }}",
                   "rollback": "false",
@@ -134,7 +134,7 @@ jobs:
         if: failure()
         uses: mdefenders-actions/cd-notify-and-report@dev
         with:
-          image-name: ${{ steps.get-image-tags.outputs.new-image }}
+          image-name: ${{ steps.ci-preflight.outputs.image-repo }}
           image-tag: ${{ steps.get-image-tags.outputs.new-tag }}
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
           workflow-name: ${{ github.workflow }}
@@ -202,7 +202,7 @@ jobs:
                   "gitops-branch": "${{ needs.action-based-ci.outputs.effective-branch }}",
                   "new-tag": "${{ needs.action-based-ci.outputs.new-tag }}",
                   "gitops-file": "${{ needs.action-based-ci.outputs.gitops-file }}",
-                  "image": "${{ needs.action-based-ci.outputs.new-image }}",
+                  "image": "${{ needs.action-based-ci.outputs.image-repo }}",
                   "app": "${{ needs.action-based-ci.outputs.app-name }}",
                   "replicas": "${{ vars.DEV_REPLICAS || '0' }}",
                   "rollback": "false",
@@ -214,7 +214,7 @@ jobs:
         if: always()
         uses: mdefenders-actions/cd-notify-and-report@dev
         with:
-          image-name: ${{ needs.action-based-ci.outputs.new-image }}
+          image-name: ${{ needs.action-based-ci.outputs.image-repo }}
           image-tag: ${{ needs.action-based-ci.outputs.new-tag }}
           prom-push-token: ${{ secrets.PROM_PUSH_TOKEN }}
           workflow-name: ${{ github.workflow }}
