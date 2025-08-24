@@ -48,7 +48,7 @@ jobs:
                 "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
                 "data": {
                   "gitops-branch": "${{ steps.ci-preflight.outputs.effective-branch }}",
-                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
+                  "new-tag": "${{ steps.ci-preflight.outputs.promoted-version }}",
                   "gitops-file": "${{ steps.ci-preflight.outputs.gitops-file }}",
                   "image": "${{ steps.ci-preflight.outputs.image-repo }}",
                   "app": "${{ steps.ci-preflight.outputs.app-name }}",
