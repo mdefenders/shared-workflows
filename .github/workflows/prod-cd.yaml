@@ -21,3 +21,40 @@ jobs:
         with:
           domain: ${{ vars.DOMAIN }}
           environment: 'prod'
+
+      - name: Check if Docker image exists on DockerHub
+        id: check-image
+        uses: tyriis/docker-image-tag-exists@v2.1.0
+        with:
+          registry: docker.io
+          repository: ${{ steps.ci-preflight.outputs.image-repo }}
+          tag: ${{ steps.ci-preflight.outputs.promoted-version }}
+
+      - name: Exit if image not found
+        if: steps.check-image.outputs.tag == 'not found'
+        run: |
+          echo "Docker image ${{ steps.ci-preflight.outputs.image-repo }}:${{ steps.ci-preflight.outputs.promoted-version }} not found . Exiting."
+          exit 1
+
+      - name: Call CD
+        id: call-cd
+        uses: mdefenders-actions/call-action@dev
+        with:
+          github-token: ${{ secrets.MDEFENDERS_GITHUB_TOKEN }}
+          workflows-to-call: |
+            {
+              "${{ steps.ci-preflight.outputs.gitops-repo }}": {
+                "yaml": "${{ vars.GITOPS_CD_WORKFLOW || 'cd-update-gitops.yaml' }}",
+                "ref": "${{ vars.GITOPS_CD_DEFAULT_BRANCH || 'main' }}",
+                "data": {
+                  "gitops-branch": "${{ steps.ci-preflight.outputs.effective-branch }}",
+                  "new-tag": "${{ steps.get-image-tags.outputs.new-tag }}",
+                  "gitops-file": "${{ steps.ci-preflight.outputs.gitops-file }}",
+                  "image": "${{ steps.ci-preflight.outputs.image-repo }}",
+                  "app": "${{ steps.ci-preflight.outputs.app-name }}",
+                  "replicas": "${{ vars.PROD_TEST_REPLICAS || '3' }}",
+                  "rollback": "false",
+                  "dry-run": "false"
+                }
+              }
+            }
