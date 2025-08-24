@@ -117,11 +117,10 @@ jobs:
           runUnitTests: false
           runIntegrationTests: true
           reportTitle: 'Smoke Tests'
-          appName: ${{ needs.action-based-promote.outputs.app-name }}
-          serviceDomain: ${{ vars.DOMAIN || 'svc.cluster.local' }}
           namespace: ${{ needs.action-based-promote.outputs.target-namespace }}
-          subdomain: ${{ needs.action-based-promote.outputs.subdomain }}
-          unitTestCommand: ${{ vars.SMOKE_TEST_COMMAND || 'make test-smoke' }}
+          intTestCommand: ${{ vars.SMOKE_TEST_COMMAND || 'make test-smoke' }}
+          url: ${{ needs.action-based-promote.outputs.service-url }}
+
 
       - name: Notify and Report
         if: always()

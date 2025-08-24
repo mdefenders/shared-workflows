@@ -183,10 +183,8 @@ jobs:
           runUnitTests: false
           runIntegrationTests: true
           reportTitle: 'Regression Tests'
-          appName: ${{ needs.action-based-ci.outputs.app-name }}
-          serviceDomain: ${{ vars.DOMAIN || 'svc.cluster.local' }}
           namespace: ${{ needs.action-based-ci.outputs.target-namespace }}
-          subdomain: ${{ needs.action-based-ci.outputs.subdomain }}
+          url: ${{ needs.action-based-ci.outputs.service-url }}
 
       - name: Call CD Reduce
         id: call-cd-reduce
